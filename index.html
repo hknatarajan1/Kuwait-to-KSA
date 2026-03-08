@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KSA &amp; Kuwait — Iranian Strike Intelligence · AKE International</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --ake1:#00549f; --ake2:#0a2d52; --ake3:#0d1640;
+  --panel:#0f1520; --panel2:#151d2e; --border:rgba(255,255,255,.09);
+  --fg:#dde3f0; --muted:#6b7898;
+}
+body.light-map {
+  --panel:#f0f2f8; --panel2:#e4e7f0; --border:rgba(0,0,0,.1);
+  --fg:#1a1f2e; --muted:#6b7280;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;
+  font-family:'Inter',sans-serif;background:#0a0e18;color:var(--fg);}
+
+/* Header */
+#hdr{position:fixed;top:0;left:0;right:0;height:52px;z-index:1200;
+  background:var(--ake2);border-bottom:2px solid var(--ake1);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;gap:10px;box-shadow:0 2px 14px rgba(0,0,0,.55);}
+.h-left{display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:0;}
+.h-logo{height:28px;mix-blend-mode:screen;flex-shrink:0;}
+.h-sep{width:1px;height:28px;background:rgba(255,255,255,.2);flex-shrink:0;}
+.h-title{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;}
+.h-sub{font-size:9px;color:rgba(255,255,255,.5);margin-top:1px;white-space:nowrap;}
+.h-right{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.stat-chip{display:flex;flex-direction:column;align-items:center;
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);
+  border-radius:5px;padding:3px 11px;min-width:62px;}
+.sc-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;
+  color:#fff;line-height:1.2;}
+.sc-val.g{color:#4ade80;}.sc-val.r{color:#f87171;}
+.sc-lbl{font-size:7.5px;color:rgba(255,255,255,.4);text-transform:uppercase;
+  letter-spacing:.07em;white-space:nowrap;margin-top:1px;}
+.msb{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.65);font-size:11px;padding:5px 10px;
+  border-radius:4px;cursor:pointer;white-space:nowrap;transition:.15s;}
+.msb:hover{background:rgba(255,255,255,.17);color:#fff;}
+.msb.active{background:var(--ake1);border-color:var(--ake1);color:#fff;}
+#hts{font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:rgba(255,255,255,.5);min-width:72px;text-align:right;}
+
+/* Day/country bar */
+#dbar{position:fixed;top:52px;left:0;right:0;height:37px;z-index:1100;
+  background:var(--ake3);border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;padding:0 10px;gap:4px;overflow-x:auto;}
+#dbar::-webkit-scrollbar{height:3px;}
+#dbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);}
+.dbtab,.ctab{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);
+  color:#999;font-size:11px;padding:4px 10px;border-radius:4px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s;}
+.dbtab:hover,.ctab:hover{background:rgba(255,255,255,.14);color:#ddd;}
+.dbtab.active{background:var(--ake1);border-color:var(--ake1);color:#fff;font-weight:600;}
+.ctab.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600;}
+.dbar-sep{width:1px;height:20px;background:rgba(255,255,255,.13);flex-shrink:0;margin:0 4px;}
+
+/* Map — fills everything between header+dbar and status bar, minus sidebar */
+#map{position:fixed;top:89px;left:0;right:290px;bottom:26px;z-index:1;}
+
+/* Sidebar */
+#sb{position:fixed;top:89px;right:0;bottom:26px;width:290px;z-index:900;
+  background:var(--panel);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;}
+.type-filter{display:flex;gap:3px;padding:7px 8px;
+  background:var(--panel2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tftab{flex:1;text-align:center;padding:5px 2px;font-size:10px;font-weight:500;
+  border-radius:4px;cursor:pointer;border:1px solid transparent;
+  color:var(--muted);transition:.15s;}
+.tftab:hover{color:var(--fg);}
+.tftab.on.all    {background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff;}
+.tftab.on.drone  {background:rgba(217,119,6,.18); border-color:#d97706;color:#fbbf24;}
+.tftab.on.missile{background:rgba(220,38,38,.18); border-color:#dc2626;color:#f87171;}
+.tftab.on.mixed  {background:rgba(8,145,178,.18); border-color:#0891b2;color:#67e8f9;}
+.tftab.on.debris {background:rgba(124,58,237,.18);border-color:#7c3aed;color:#c4b5fd;}
+.list-hdr{padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--border);}
+.alist-wrap{flex:1;overflow-y:auto;}
+.alist-wrap::-webkit-scrollbar{width:4px;}
+.alist-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+
+/* Incident rows */
+.ap-row{display:flex;align-items:center;gap:8px;padding:9px 10px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:.1s;}
+.ap-row:hover{background:var(--panel2);}
+.ap-row.hilited{background:rgba(0,84,159,.15);border-left:3px solid var(--ake1);}
+.ap-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ap-pip.drone{background:#d97706;}.ap-pip.missile{background:#dc2626;}
+.ap-pip.mixed{background:#0891b2;}.ap-pip.debris{background:#7c3aed;}
+.ap-info{flex:1;min-width:0;}
+.ap-name{font-size:11px;font-weight:600;color:var(--fg);line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ap-city{font-size:9px;color:var(--muted);margin-top:1px;}
+.ap-badge{font-size:8px;font-weight:700;letter-spacing:.05em;padding:2px 5px;
+  border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.ap-badge.drone  {background:rgba(217,119,6,.2); color:#fbbf24;}
+.ap-badge.missile{background:rgba(220,38,38,.2); color:#f87171;}
+.ap-badge.mixed  {background:rgba(8,145,178,.2); color:#67e8f9;}
+.ap-badge.debris {background:rgba(124,58,237,.2);color:#c4b5fd;}
+
+/* Popup */
+.leaflet-popup-content-wrapper{background:var(--panel2);border:1px solid var(--border);
+  border-radius:8px;padding:0;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.6);}
+.leaflet-popup-content{margin:0;min-width:300px;}
+.leaflet-popup-tip-container{display:none;}
+.leaflet-popup-close-button{color:var(--muted)!important;font-size:18px!important;
+  padding:8px 10px!important;}
+.pu-hdr{padding:12px 14px 10px;}
+.pu-hdr.drone  {border-top:3px solid #d97706;}
+.pu-hdr.missile{border-top:3px solid #dc2626;}
+.pu-hdr.mixed  {border-top:3px solid #0891b2;}
+.pu-hdr.debris {border-top:3px solid #7c3aed;}
+.pu-top{display:flex;gap:10px;align-items:flex-start;}
+.pu-icon-wrap{width:32px;height:32px;border-radius:6px;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;}
+.pu-icon-wrap.drone  {background:rgba(217,119,6,.2);}
+.pu-icon-wrap.missile{background:rgba(220,38,38,.2);}
+.pu-icon-wrap.mixed  {background:rgba(8,145,178,.2);}
+.pu-icon-wrap.debris {background:rgba(124,58,237,.2);}
+.pu-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;}
+.pu-tbadge{font-size:8px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:3px;}
+.pu-tbadge.drone  {background:rgba(217,119,6,.3); color:#fbbf24;}
+.pu-tbadge.missile{background:rgba(220,38,38,.3); color:#f87171;}
+.pu-tbadge.mixed  {background:rgba(8,145,178,.3); color:#67e8f9;}
+.pu-tbadge.debris {background:rgba(124,58,237,.3);color:#c4b5fd;}
+.pu-sbadge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;}
+.pu-sbadge.r{background:rgba(220,38,38,.25);color:#f87171;}
+.pu-sbadge.g{background:rgba(74,222,128,.15);color:#4ade80;}
+.pu-sbadge.a{background:rgba(251,191,36,.15);color:#fbbf24;}
+.pu-sbadge.p{background:rgba(100,116,139,.2); color:#94a3b8;}
+.pu-name{font-size:13px;font-weight:700;color:var(--fg);}
+.pu-city{font-size:10px;color:var(--muted);margin-top:2px;}
+.pu-dt{font-size:9.5px;color:var(--muted);}
+.pu-body{padding:10px 14px 12px;}
+.pu-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.pu-cell{background:rgba(255,255,255,.04);border-radius:4px;padding:5px 7px;}
+.pu-cell-k{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.pu-cell-v{font-size:11px;font-weight:600;color:var(--fg);margin-top:2px;}
+.pu-cell-v.r{color:#f87171;}.pu-cell-v.g{color:#4ade80;}
+.pu-desc{font-size:11px;color:var(--fg);line-height:1.55;margin-bottom:8px;
+  padding:8px;background:rgba(255,255,255,.03);border-radius:4px;}
+.pu-news-title,.pu-links-title{font-size:9px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.news-item{display:flex;gap:8px;margin-bottom:5px;align-items:flex-start;}
+.news-dot{width:8px;height:8px;border-radius:50%;margin-top:3px;flex-shrink:0;}
+.news-dot.r{background:#dc2626;}.news-dot.g{background:#22c55e;}
+.news-dot.a{background:#f59e0b;}.news-dot.b{background:#3b82f6;}
+.news-text{font-size:10.5px;color:var(--fg);line-height:1.4;}
+.news-meta{font-size:9px;color:var(--muted);margin-top:1px;}
+.pu-links{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.pu-link-row{display:flex;flex-wrap:wrap;gap:4px;}
+.pu-link{background:rgba(0,84,159,.2);border:1px solid rgba(0,84,159,.4);
+  color:#60a5fa;font-size:9.5px;padding:3px 8px;border-radius:3px;text-decoration:none;}
+.pu-link:hover{background:rgba(0,84,159,.35);color:#93c5fd;}
+.pu-foot{margin-top:8px;padding-top:6px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;font-size:8.5px;color:var(--muted);}
+
+/* Marker icons */
+.mc{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;border:2px solid;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,.5);}
+.mc.drone  {background:rgba(217,119,6,.25); border-color:#d97706;}
+.mc.missile{background:rgba(220,38,38,.25); border-color:#dc2626;}
+.mc.mixed  {background:rgba(8,145,178,.25); border-color:#0891b2;}
+.mc.debris {background:rgba(124,58,237,.25);border-color:#7c3aed;}
+.mc-count{position:absolute;top:-5px;right:-5px;background:#dc2626;
+  color:#fff;font-size:8px;font-weight:700;border-radius:8px;
+  padding:1px 4px;border:1px solid #0a0e18;}
+
+/* Legend */
+#legend{position:fixed;bottom:34px;right:298px;z-index:900;
+  background:var(--panel2);border:1px solid var(--border);
+  border-radius:6px;padding:9px 12px;}
+.leg-title{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:7px;}
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.leg-row:last-child{margin-bottom:0;}
+.leg-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.leg-lbl{font-size:11px;color:var(--fg);font-weight:500;}
+.leg-sub{font-size:8.5px;color:var(--muted);}
+
+/* Status bar */
+#sbar{position:fixed;bottom:0;left:0;right:0;height:26px;z-index:1200;
+  background:#05060f;border-top:1px solid #1a1d35;
+  display:flex;align-items:center;padding:0 12px;gap:10px;
+  font-size:9px;overflow:hidden;}
+.sbar-src{color:#444;font-weight:700;flex-shrink:0;}
+.sbar-link{color:#3d7cc9;text-decoration:none;flex-shrink:0;}
+.sbar-link:hover{text-decoration:underline;}
+</style>
+</head>
+<body class="dark-map">
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="h-left">
+    <img class="h-logo" src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAF9A5EDASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAcIBgkBBAUDAv/EAFwQAAECBAIBDAoMCwcDBAMBAAABAgMEBQYHEQgSFRghQVFVVmGTlNETFjE3VHGRs9LTCRQiMjhyc3R1gZWjFyMkQlJTYmOhsbIzNTZXgrTDNIOEQ5LC4aLB8CX/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAGxEBAQEAAwEBAAAAAAAAAAAAAAERAhIxIUH/2gAMAwEAAhEDEQA/AKygA5MgAAAAAAAAB2WSM89qOZJzDmqmaKkJyoqeQDrA7Wt8/wCAzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/AIDM807qA6oO1rfP+AzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/gMzzTuoDqg7Wt8/wCAzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/AIDM807qA6oO1rfP+AzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/gMzzTuoDqg7Wt8/wCAzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/AIDM807qA6oO1rfP+AzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/gMzzTuoDqg7Wt8/wCAzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuoa3z/AIDM807qA6oO1rfP+AzPNO6hrfP+AzPNO6gOqDta3z/gMzzTuo+UaBHgrlGgxIa7z2qn8wPkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPUptu3BUpZJqnUKpzkBVVqRZeUiRG5p3UzaiodntOu7irXPs+L6IHhA93tOu7irXPs+L6I7Tru4q1z7Pi+iB4QPd7Tru4q1z7Pi+iO067uKtc+z4vogeED3e067uKtc+z4vojtOu7irXPs+L6IHhA93tOu7irXPs+L6I7Tru4q1z7Pi+iB4QPd7Tru4q1z7Pi+iO067uKtc+z4vogeED3e067uKtc+z4vojtOu7irXPs+L6IHhA93tOu7irXPs+L6I7Tru4q1z7Pi+iB4QPd7Tru4q1z7Pi+iO067uKtc+z4vogeED3e067uKtc+z4vojtOu7irXPs+L6IHhA93tOu7irXPs+L6I7Tru4q1z7Pi+iB4QPd7Tru4q1z7Pi+iO067uKtc+z4vogeED3e067uKtc+z4vojtOu7irXPs+L6IHhA93tOu7irXPs+L6I7Tru4q1z7Pi+iB4QPd7Tru4q1z7Pi+iO067uKtc+z4vogeED3e067uKtc+z4vojtOu7irXPs+L6IHhA93tOu7irXPs+L6I7Tru4q1z7Pi+iB4QPd7Tru4q1z7Pi+iO067uKtc+z4vogeED24lo3XDYr4lsVtjU7qukIqJ/SeVMy0zKxFhzMvFgPTutiMVq+RQPiAAAAAAAAAAAAAAAAAAAAAAGW4TWHV8RbzlbdpLVaj11c1MKmbZeCnvnr/JE3VVEAznRcwhi4jXRrnVoLm21TYiLMuXa9sxO6kFq/xcu4nKqF+4ECDAgsgQYUOHChtRjGMaiNa1EyRETcQ8mx7YpFnWvI27Q5dIElJw9S39J7vznuXdcq5qqntHSTGnGpbvJ5BqW7yeQ5BRxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQalu8nkOQBxqW7yeQ+U1Jyk3DWHNSsCOxe62JDRyeRT7ADBbnwfw0uNj0qdm0rsj+7Fl4PYInj1UPJSEsQdEWQjMiTVjV+LLRNtWydR92xeRIjUzT60XxlpwTINYF/WHdliVL2jc9GmJFzlVIcVU1UKLysenuXeXPfMZNqtw0Sk3DSY1KrdOlqhIxkyiQY7Ec1eXkXlTbQpppDaOM7acOYuWymx6hQ25vjya5vjyibqp+mxN/upu5ptmbxTFdQAZQAAAAAAAAAAAAAAAAAAAAAActRXORrUVVVckRO6pPWDOjTdN39hqt0LFt6jOycjYjPyqO39li+8Rd93kUuKha26DWbkq0Kk0GmzNRnYq+4gwGK53jXeTlXaQthgzorSUj2Gr4jRmTswmTm0uXf8AiWL+8em29eRuScqk+4e2HathUlKdbFJgybFROyxctVGjLvveu27+SbiIZManEx8KfJSdOkoMjISsGVlYLUZCgwWIxjG7yIm0iH3ANKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1KlTKbU4KwajT5SchL3WTEFsRvkVFO2AIovPR6wsuWG9e19tImXZ5R6Y7sKou/qNti/+0rtifosXfb8OLP2nNMuSSbtrARvY5pqfFzyf/pXPkLwAlkGp+bl5iUmYkrNwIsvHhOVsSFFYrXMVO6iou2inyNjmM2DVp4lyL3z0u2QrLW5QKnAYiRGruI9Pz28i7e8qFD8UcP7jw6uR9FuCV1Krm6WmYe3CmWZ++Yv80XbTdMWYjEwARAAAAAAAAAAAAAB26NTZ6sVWVpVMlYk1OzcVsKBBhpm57lXJEQ2JaP2F0hhjZjJHKHGrM2jYtSmkT378tpjV/QbmqJv7a7pHWh9g52sUqHfNxyuVanoX5FAiN25SA5PfKm49yeRu1uqWNN8YsAAaUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqIqKipmi91AAKZaXOCMO3oka/LSk0ZSYr86jJwm7Uq9V/tGpuMVV20/NVd5dqs5ten5SVqEjHkZ2BDmJaYhuhRoURM2vY5MlRU3lQ1x6QGHkbDfEWbozUe6mx/wApp0V350Fyrk1V3VaubV8We6Y5RKj0AGUAAAAAAAAAAAAAAA9K26DWbkq0Kk0GmzNRnYq5MgwGK5fGu8nKu0gHmmd4VYUXliPOoyg05WSLXamNUJjNkvD3/dfnL+y3NSxGDWitJSPYaviNGZOzCZObS5d/4li/vHptv8Tck5VLN0+Sk6dJQpGQlYMpKwWoyFBgsRjGN3kRNpENTiuIqwbwCs3D1sGfiwUrVdaiKs9NMTKG790zbRnj23cpLgBtQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxXFGxKFiHacxb9cg5temql5hqJ2SWibj2Lv76bqZoplQA1fYkWbWLDu+ctutQtTHl3Zw4jU9xHhr72I3kVPIuad1DGy/wBpZ4ZMvuwIlUp8ujq9RmOjyytT3UaEm3EhcuaJmnKnKpQE52YgACIAAAAAAAAFidEDB3trq7L2uKVzochF/JIMRu1Nx2r3VTdY1e7vrtbikd4BYYVDE69IdPYkSDSZVWxalNIn9nDz2mNX9N2Son1ruGxSiUuQolIlKRS5WHKyUpCbBgQYaZIxqJkif/ZrjFjuAA2oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABB2mdZLLmwpi1uXhaqoUByzTHIm2sFckit8WWTv9BOJ16lJwKjTpmnzTNXLzMF0GK3fa5FRU8iijVED0ropUWh3LU6LHz7JIzcWWdmndVjlbn/AAPNOTIAAAAAAAAAABy1Fc5GtRVVVyRE3TOcK8KbyxHnkh0CnK2Sa7KNUJjNkvC3/dZe6X9lualzsGsArOw9SFUI0JK3XWoirOzMNNTCd+6Zto3x7buUsmqrlgzo03Rd/YKrdCxbeozsnI17PyqO39li+8Rd93kUuJh9Ydq2HSEptsUmDJsVE7LFy1UaMu+967bv5JuIhkwNyYoACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGurSfsptkYu1OTlYPY6fP5T0miJk1rIirm1ORr0cniRDYqVi0/rfbHta37nhw/wAZJzb5SK5P0IjdU3PxKxf/AHE5eJVNwAc0AAAAAAAATdhVpCT2HNpQbeodnUdzGuWJHmIkWJ2SYiL3XuyXxIidxERDK9mDdXFGi89F6yswLtVZnZg3VxRovPResbMG6uKNF56L1lZgNoszswbq4o0XnovWNmDdXFGi89F6yswG0WZ2YN1cUaLz0XrGzBurijReei9ZWYDaLM7MG6uKNF56L1jZg3VxRovPResrMBtFmdmDdXFGi89F6xswbq4o0XnovWVmA2izOzBurijReei9Y2YN1cUaLz0XrKzAbRZnZg3VxRovPResbMG6uKNF56L1lZgNoszswbq4o0XnovWNmDdXFGi89F6yswG0WZ2YN1cUaLz0XrGzBurijReei9ZWYDaLM7MG6uKNF56L1jZg3VxRovPResrMBtFmdmDdXFGi89F6xswbq4o0XnovWVmA2izOzBurijReei9Y2YN1cUaLz0XrKzAbRZnZg3VxRovPResbMG6uKNF56L1lZgNoszswbq4o0XnovWNmDdXFGi89F6yswG0WZ2YN1cUaLz0XrGzBurijReei9ZWYDaLM7MG6uKNF56L1jZg3VxRovPResrMBtFmdmDdXFGi89F6xswbq4o0XnovWVmA2izOzBurijReei9ZNuj9jnScUlj0yPI6012Xh9ldLdl1bI0PPJXQ3ZIu1mmaKmaZ7pr5Ja0Qoj2aQltox7mo/2y1yIvvk9rRVyX60TyFlo2FgA2oAAAAA1y6UUi2n493XBa3JsSabHT/uQ2PX+LlI0Je0w/hA1/4kt5hhEJzvqAAIgAAAOWornI1qKqquSIm6Tzg1o03Td/Yapc/ZbdozsnIkRn5VHb+yxfeIv6TvqRS4qF7coVYuOrQqTQqbM1GejLkyDAYrnLyrvJyrtIWvwa0VpOT7BV8RozZyOmTm0qXf+Kav7x6bbvE3JOVSfcPbCtWwqSlOtikwZNqonZYy+6jRl33vXbXxdxNxEMnNTiY69OkZOmyMGRp8rAlJWC1GQoMFiMYxN5ETaQ7ABpQAAAAAAAAAAAAAAAA6tWqElSaXNVOozDJaTlITo0eK9dpjGpmqr9SHaIs0sosSDgBc7ob1arocFiqm6ix4aKnkAhO8NL2rJWo0O07bp+trHK2FFn1e6LFRPzla1yI3Pe2/GeLsu794v27zcb1hXMHPaixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2ixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2ixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2ixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2ixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2ixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2ixmy7v3i/bvNxvWDZd37xft3m43rCuYG0WM2Xd+8X7d5uN6wbLu/eL9u83G9YVzA2iz9t6X1wtqsFLitimRae5yJFWSc9kVqbqt1TlRfEuWe+hbe3axT7goUlW6TMNmJGdgtjQIifnNVP4LuKm4pqpNhGh4979Hy3le5XZPmkTNe4iTETJDXGkS6ADSgAAERaYMg2ewBrz1TN0q+Xjs8aRmIv8HKS6RtpP94S7fmbfOMJRrjABzZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWNEX4QtseOZ/20UicljRF+ELbHjmf9tFLPVbDQAdFAAAAAGvjTD+EDX/AIkt5hhEJL2mH8IGv/ElvMMIhOd9QAPStyhVi46tCpNCpszUZ6MuTIMBiucvKu8nKu0hEeaZ1hVhTeWI88kOg05WSTXamNUJjNkvC3/dfnL+y3NSw+DOitJyfYKviNGbOR0yc2lS7/xTF3oj023eJuScqlnKdJSdNkYMjT5WBKSsFuohQYLEYxibyIm0hqcVxFWDeANm4fNhT8aElbrrURVnZqGmphO/dM20b49t3KS6AbUAAAAAAAAAAA+M7NS0lKRZucmIUtLwmq+JFivRrGNTuqqrtIhG+MWNtm4bwYktNzOuVa1P4umyrkV6Ludkd3IaePb3kUpXi5jBeWJM25KvO+1aYjs4NNllVsFm8rt17uV31ZEtwWDxo0p5Cndmo+HUOHUJpM2vqkZv4iGv7tq+/XlXJPjEj6J1aq1w4NydXrdQmKhPzE5Muix4ztU534xck5ETcRNpDXkX90Le8JTPncz51SS7UTQADSgAAEU6W/wfrl+LA8/DJWIp0t/g/XL8WB5+GS+DXgADmyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABsG0Ofg92/wDKTX+5iGvk2DaHPwe7f+Umv9zENcfViXwAbUAAAjbSf7wl2/M2+cYSSRtpP94S7fmbfOMFGuMAHJkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJY0RfhC2x45n/AG0UicljRF+ELbHjmf8AbRSz1Ww0AHRQAAAABr40w/hA1/4kt5hhETUVzka1FVVXJETdLLY24VXjiRpH1+FQKerZJiSzY9QmM2S8L8RDz91l7pf2W5qThg3gDZuHzYM/HhNrddaiKs7NQ01MJ37pm2jfHtu5TGbUVxwa0arpvDsNUubstu0Z2TkSIz8qjt/ZYvvEXfd9SKXFw9sK1bCpKU62KTClGqidljL7qNGXfe9dtf5JuIhk4NSYoACgAAAAAAAADhzmtarnKjWomaqq7SIQBjTpM23anZ6TaKQa/WG5tdFa78kgO5XJ/aKm83a5RuCaLuuegWlRolXuOqS1Ok4f58V2SuX9Fqd1y8iIqlQ8adKKtV3s9IsJkajU1c2un35e2oyfs7kNPFm7lQg++rzua96y6q3NVY8/MLnqGuXKHCRfzWMTaaniMeMXkmv3HixY8Z8aPEfFixHK573uVXOVe6qqvdU/ABlAv7oW94SmfO5nzqlAi/uhb3hKZ87mfOqa4+rE0AA2oAABFOlv8H65fiwPPwyViKdLf4P1y/Fgefhkvg14AA5sgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbBtDn4Pdv/ACk1/uYhr5Ng2hz8Hu3/AJSa/wBzENcfViXwAbUAAAjbSf7wl2/M2+cYSSRtpP8AeEu35m3zjBRrjAByZAAAAAAAAd6FR6tFhtiwqXPRGOTNrmy7lRU30XI/Wsda4HqHRn9RsjwN7zdn/Q0t5tpmRrquNVWsda4HqHRn9Q1jrXA9Q6M/qNqoL1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6hrHWuB6h0Z/UbVQOpjVVrHWuB6h0Z/UNY61wPUOjP6jaqB1MaqtY61wPUOjP6iVNE6lVSWx/tqNMU2cgwmrM5viQHNan5NF7qqhsBA6mAANKAAAAAAAAAAAAAAAAAHUrNTp1GpsapVael5GTgN1UWPHiIxjE5VUDtmE4p4o2fhxTlmLgqLfbT2qsCRgZPmI3ibuJ+0uScpAONOlS53Z6NhtC1KbbH1eYh7fjhQ1/qd5N0qzVqjP1eoxqjVJ2POzkdyvix48RXveu+qqZvJNSnjPj5eGIbo1PgRXUWguVUSRloi6qK396/aV3i2m8m6RCAYQAAAAAC/uhb3hKZ87mfOqUCL+6FveEpnzuZ86prj6sTQADagAAEWaV8GNMYCXHBl4MSNEc2BqWQ2q5y/j4e4hKYA1Vax1rgeodGf1DWOtcD1Doz+o2qgz1TGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+oax1rgeodGf1G1UDqY1Vax1rgeodGf1DWOtcD1Doz+o2qgdTGqrWOtcD1Doz+ov1ogwI8tgDQYMzBiQYrYk1myI1WuT8oibiktgsmAACqAAARtpP94S7fmbfOMJJI20n+8JdvzNvnGCjXGADkyAAAAAAAA2Z4G95uz/oaW820zIw3A3vN2f8AQ0t5tpmR1jQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADHL+ve2LFo7qpc1VgyUHb7GxV1UWMv6LGJtuXxfXkU5xp0lrmu/s9JtZI1v0V2bVex/5VHb+09PeIv6LfrVSW4LEYz6QFoYfpGp0pEbXK81FT2nLxE1EF371+2jfipmvIndKX4oYnXfiLUvbVxVJzpdjlWBJQc2S8H4rd1f2lzXlMMcquVXOVVVdtVXdODFuoAAiAAAAAAAABf3Qt7wlM+dzPnVKBF/dC3vCUz53M+dU1x9WJoABtQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI20n+8JdvzNvnGEkkbaT/eEu35m3zjBRrjAByZAAAAAAAAbM8De83Z/wBDS3m2mZGG4G95uz/oaW820zI6xoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAOkRo9Nv6ej3LQKvHl64rfdS85Gc+XioibSNVc1hfV7nkTulMbwtev2jWYlIuOlzFOnIf5kVu05P0mu7jk5UVUNph4F82bbV7UZ9JualQJ+XXPUK9Mnwl/SY5Ntq8qGbx1MauQWCxp0ZbjtXs9Xs9Y1fo7c3ugo38rgN5Wp/aJyt2+TdK/va5j1Y9qtc1clRUyVFM4PyACIAAAAAAAAF/dC3vCUz53M+dUoEX90Le8JTPncz51TXH1YmgAG1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjbSf7wl2/M2+cYSSRtpP94S7fmbfOMFGuMAHJkAAAAAAABszwN7zdn/Q0t5tpmRhuBvebs/6GlvNtMyOsaAAAAAAEU6S+J1WwttamVakU+SnYs3O+1nsmtVqWt1DnZpqVTb9yQFsv714sW/996ZLcF0wUs2X968WLf8AvvTGy/vXixb/AN96ZO0TV0wUs2X968WLf++9MbL+9eLFv/femO0NXTBSzZf3rxYt/wC+9MbL+9eLFv8A33pjtDV0wUs2X968WLf++9MbL+9eLFv/AH3pjtDV0wUs2X968WLf++9MbL+9eLFv/femO0NXTBSzZf3rxYt/770xsv714sW/996Y7Q1dMFLNl/evFi3/AL70xsv714sW/wDfemO0NXTBSzZf3rxYt/770xsv714sW/8AfemO0NXTBSzZf3rxYt/770xsv714sW/996Y7Q1dMFLNl/evFi3/vvTGy/vXixb/33pjtDV0wUs2X968WLf8AvvTGy/vXixb/AN96Y7Q1dMFLNl/evFi3/vvTGy/vXixb/wB96Y7Q1dMFLNl/evFi3/vvTGy/vXixb/33pjtDV0wUs2X968WLf++9MbL+9eLFv/femO0NXTBSzZf3rxYt/wC+9MzTBHSQui/MT6RalQoNGlZWeWKj4sDsmrbqIT3plm5U7rUQvaLqz4AKAAAAAAAAAAAAAAAABEeM2Aln4hsiz8KE2i15yKqT0sxMorv3rNpH+Pady7hLgA1o4p4W3hhxUFgXBTnLKPcqQJ+Bm+XjeJ24v7K5KYQbW6tTpCrU6NTqpJS87Jx26iLAjw0ex6byopVnGnRWa7s9Zw2io12299ImIm14oURf6XeXcMXimKlA7lZpdRo1SjU2rSMxIzkB2piwI8NWPYvKinTMoAAAAABf3Qt7wlM+dzPnVKBF/dC3vCUz53M+dU1x9WJoABtQAAADDMbbunbEwzq1006Vl5qZkkhqyFHz1DtVEaxc8lRe45QMzBSzZf3rxYt7770xsv714sW9996ZO0TV0wUs2X968WLe++9MbL+9eLFvffemO0NXTBSzZf3rxYt7770xsv714sW9996Y7Q1dMFLNl/evFi3vvvTGy/vXixb333pjtDV0wUs2X968WLe++9MbL+9eLFvffemO0NXTBSzZf3rxYt7770xsv714sW9996Y7Q1dMFLNl/evFi3vvvTGy/vXixb333pjtDV0wUs2X968WLe++9MbL+9eLFvffemO0NXTBSzZf3rxYt7770xsv714sW9996Y7Q1dMFLNl/evFi3vvvTGy/vXixb333pjtDV0wUs2X968WLe++9MbL+9eLFvffemO0NXTBSzZf3rxYt7770xsv7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" alt="AKE">
+    <div class="h-sep"></div>
+    <div>
+      <div class="h-title">KSA &amp; Kuwait — Iranian Strike Intelligence</div>
+      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 08 Mar 2026</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <div class="stat-chip"><span class="sc-val g" id="tot-int">—</span><span class="sc-lbl">Intercept %</span></div>
+    <div class="stat-chip"><span class="sc-val r" id="tot-struck">—</span><span class="sc-lbl">Total Hits</span></div>
+    <div class="stat-chip"><span class="sc-val r" id="tot-ksa-hits">—</span><span class="sc-lbl">KSA Hits</span></div>
+    <div class="stat-chip"><span class="sc-val r" id="tot-kw-hits">—</span><span class="sc-lbl">Kuwait Hits</span></div>
+    <div class="map-style-group" style="display:flex;gap:3px;">
+      <button class="msb" id="msb-light" onclick="setStyle('light')">&#9728; Light</button>
+      <button class="msb active" id="msb-dark" onclick="setStyle('dark')">&#127761; Dark</button>
+      <button class="msb" id="msb-street" onclick="setStyle('street')">&#128506; Street</button>
+    </div>
+    <span id="hts"></span>
+  </div>
+</div>
+
+<!-- DAY + COUNTRY BAR -->
+<div id="dbar">
+  <div id="daytabs" style="display:flex;gap:4px;flex-shrink:0;"></div>
+  <div class="dbar-sep"></div>
+  <button class="ctab active" data-c="all"          onclick="setCountry(this,'all')">Both Countries</button>
+  <button class="ctab"        data-c="Saudi Arabia" onclick="setCountry(this,'Saudi Arabia')">&#127462;&#127466; Saudi Arabia</button>
+  <button class="ctab"        data-c="Kuwait"       onclick="setCountry(this,'Kuwait')">&#127472;&#127484; Kuwait</button>
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- SIDEBAR -->
+<div id="sb">
+  <div class="type-filter">
+    <div class="tftab on all"     onclick="setType(this,'all')">All</div>
+    <div class="tftab drone"      onclick="setType(this,'drone')">Drone</div>
+    <div class="tftab missile"    onclick="setType(this,'missile')">Missile</div>
+    <div class="tftab mixed"      onclick="setType(this,'mixed')">Mixed</div>
+    <div class="tftab debris"     onclick="setType(this,'debris')">Debris</div>
+  </div>
+  <div class="list-hdr">
+    <span>&#9889; Incidents</span>
+    <span style="font-weight:400;font-size:8.5px">&#8595; scroll</span>
+  </div>
+  <div class="alist-wrap"><div id="alist"></div></div>
+</div>
+
+<!-- LEGEND -->
+<div id="legend">
+  <div class="leg-title">Incident Type</div>
+  <div class="leg-row">
+    <div class="leg-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="8" stroke="#d97706" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="3" stroke="#d97706" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="1.2" fill="#d97706"/>
+      <line x1="10" y1="1" x2="10" y2="4" stroke="#d97706" stroke-width="1.3"/>
+      <line x1="10" y1="16" x2="10" y2="19" stroke="#d97706" stroke-width="1.3"/>
+      <line x1="1" y1="10" x2="4" y2="10" stroke="#d97706" stroke-width="1.3"/>
+      <line x1="16" y1="10" x2="19" y2="10" stroke="#d97706" stroke-width="1.3"/>
+    </svg></div>
+    <div><div class="leg-lbl">Drone</div><div class="leg-sub">Shahed / loitering munition</div></div>
+  </div>
+  <div class="leg-row">
+    <div class="leg-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+      <path d="M10 2 L13 8 L11.2 8 L11.2 17 L8.8 17 L8.8 8 L7 8 Z" fill="#dc2626"/>
+      <path d="M8.8 13.5 L5.5 17.5 L8.8 16Z" fill="#dc2626"/>
+      <path d="M11.2 13.5 L14.5 17.5 L11.2 16Z" fill="#dc2626"/>
+    </svg></div>
+    <div><div class="leg-lbl">Missile</div><div class="leg-sub">Ballistic / cruise</div></div>
+  </div>
+  <div class="leg-row">
+    <div class="leg-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+      <path d="M10 2.5 L18 17 L2 17 Z" stroke="#0891b2" stroke-width="1.5" stroke-linejoin="round" fill="rgba(8,145,178,0.15)"/>
+      <line x1="10" y1="8" x2="10" y2="12.5" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="10" cy="14.5" r="1" fill="#0891b2"/>
+    </svg></div>
+    <div><div class="leg-lbl">Mixed / Unclear</div><div class="leg-sub">Multiple or unconfirmed</div></div>
+  </div>
+  <div class="leg-row">
+    <div class="leg-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="2.5" fill="#7c3aed"/>
+      <line x1="10" y1="2" x2="10" y2="5.5" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10" y1="14.5" x2="10" y2="18" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="2" y1="10" x2="5.5" y2="10" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="14.5" y1="10" x2="18" y2="10" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+    </svg></div>
+    <div><div class="leg-lbl">Debris</div><div class="leg-sub">Interception fragments</div></div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="sbar">
+  <span class="sbar-src">Sources:</span>
+  <a href="https://www.spa.gov.sa/en" target="_blank" class="sbar-link">Saudi Press Agency</a>
+  <a href="https://www.kuna.net.kw" target="_blank" class="sbar-link">KUNA</a>
+  <a href="https://www.arabnews.com" target="_blank" class="sbar-link">Arab News</a>
+  <a href="https://apnews.com" target="_blank" class="sbar-link">AP</a>
+  <a href="https://www.reuters.com/world/middle-east/" target="_blank" class="sbar-link">Reuters</a>
+  <a href="https://www.stripes.com" target="_blank" class="sbar-link">Stars &amp; Stripes</a>
+  <a href="https://www.longwarjournal.org" target="_blank" class="sbar-link">Long War Journal</a>
+  <a href="https://acleddata.com" target="_blank" class="sbar-link">ACLED</a>
+</div>
+
+<script>
+// ── TILES & MAP ────────────────────────────────────────────────────────────
+const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:20});
+const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:20});
+const osmStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+  {attribution:'© Esri',maxZoom:19});
+
+const map = L.map('map', {center:[26.5,46.0], zoom:6, zoomControl:true, attributionControl:false});
+cartoDark.addTo(map);
+
+const lgInc = L.layerGroup().addTo(map);
+const MKR = {};
+let activeDay = 'all', typeFilter = 'all', countryFilter = 'all', activeId = null;
+
+function setStyle(s) {
+  [cartoLight,cartoDark,osmStreet].forEach(l=>{if(map.hasLayer(l))map.removeLayer(l);});
+  if(s==='light')  {cartoLight.addTo(map); document.body.className='light-map';}
+  if(s==='dark')   {cartoDark.addTo(map);  document.body.className='dark-map';}
+  if(s==='street') {osmStreet.addTo(map);  document.body.className='dark-map';}
+  document.querySelectorAll('.msb').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('msb-'+s); if(btn) btn.classList.add('active');
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────
+const DAYS = [
+  { k:'all',   l:'All' },
+  { k:'28feb', l:'28 Feb' },
+  { k:'01mar', l:'01 Mar' },
+  { k:'02mar', l:'02 Mar' },
+  { k:'03mar', l:'03 Mar' },
+  { k:'04mar', l:'04 Mar' },
+  { k:'05mar', l:'05 Mar' },
+  { k:'06mar', l:'06 Mar' },
+  { k:'07mar', l:'07 Mar' },
+  { k:'08mar', l:'08 Mar' },
+];
+
+const DAILY = {
+  all:    { label:'All Days (28 Feb–08 Mar)', ml:95, dl:244, mi:92, di:228, ms:3, ds:16, inc:37 },
+  '28feb':{ label:'28 Feb', ml:45, dl:27, mi:45, di:22, ms:0, ds:5,  inc:7  },
+  '01mar':{ label:'01 Mar', ml:18, dl:55, mi:18, di:52, ms:0, ds:3,  inc:4  },
+  '02mar':{ label:'02 Mar', ml:22, dl:65, mi:20, di:60, ms:2, ds:3,  inc:6  },
+  '03mar':{ label:'03 Mar', ml:10, dl:40, mi:9,  di:36, ms:1, ds:4,  inc:6  },
+  '04mar':{ label:'04 Mar', ml:10, dl:25, mi:10, di:25, ms:0, ds:0,  inc:2  },
+  '05mar':{ label:'05 Mar', ml:8,  dl:25, mi:8,  di:25, ms:0, ds:0,  inc:3  },
+  '06mar':{ label:'06 Mar', ml:10, dl:22, mi:10, di:21, ms:0, ds:1,  inc:3  },
+  '07mar':{ label:'07 Mar', ml:12, dl:47, mi:12, di:47, ms:0, ds:0,  inc:4  },
+  '08mar':{ label:'08 Mar', ml:0,  dl:10, mi:0,  di:8,  ms:0, ds:2,  inc:2  },
+};
+
+const INCIDENTS = [
+  {
+    id:'KW8MAR_AIRPORT', name:'Kuwait Airport — Fuel Tank Strike', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.2269, lon:47.9689, type:'drone', day:'08mar', time:'~04:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian Shahed drone', cas:'None reported', dmg:'Fuel tanks destroyed; fire', rate:'—',
+    mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Iranian drone struck fuel tanks at Kuwait International Airport, causing fire and thick black smoke visible across the city. AFP authenticated footage. Kuwait military: direct targeting of vital infrastructure. National oil company announced precautionary production cuts.',
+    news:[
+      {dot:'r',text:'Drone strikes fuel tanks at Kuwait International Airport.',time:'08 Mar · 04:00'},
+      {dot:'a',text:'Fire erupts; thick smoke visible across Kuwait City.',time:'08 Mar · 04:15'},
+      {dot:'b',text:'Kuwait military: direct targeting of vital infrastructure.',time:'08 Mar · 05:00'},
+      {dot:'b',text:'Kuwait national oil company announces precautionary crude production cut.',time:'08 Mar · 08:00'}
+    ],
+    links:[
+      {label:'France24/AFP',url:'https://www.france24.com/en/live-news/20260308-kuwait-airport-saudi-arabia-targeted-as-iran-presses-gulf-attacks'},
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635645/middle-east'}
+    ]
+  },
+  {
+    id:'KW8MAR_PIFSS', name:'Social Security HQ — Drone Strike', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.3693, lon:47.9783, type:'drone', day:'08mar', time:'~06:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian drone', cas:'2 border guards killed', dmg:'Material damage; fire', rate:'—',
+    mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Kuwait Public Institution for Social Security building struck by drone, causing fire and material damage. Interior ministry confirmed two border guards killed while performing national duty. Firefighters battled the blaze; building closed to visitors.',
+    news:[
+      {dot:'r',text:'Drone strikes PIFSS building in Kuwait City; fire reported.',time:'08 Mar · 06:00'},
+      {dot:'a',text:'Firefighters respond. Building closed to visitors.',time:'08 Mar · 06:30'},
+      {dot:'r',text:'Interior ministry: 2 border guards killed while performing national duty.',time:'08 Mar · 08:00'}
+    ],
+    links:[
+      {label:'France24/AFP',url:'https://www.france24.com/en/live-news/20260308-kuwait-airport-saudi-arabia-targeted-as-iran-presses-gulf-attacks'},
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635645/middle-east'}
+    ]
+  },
+  {
+    id:'KW7MAR_WAVE', name:'Kuwait — Sustained Missile/Drone Wave', area:'Multiple locations', emirate:'Kuwait',
+    lat:29.308, lon:47.98, type:'mixed', day:'07mar', time:'~08:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Ballistic missiles / Shahed drones', cas:'None confirmed', dmg:'None confirmed', rate:'>95%',
+    mwave:7, dwave:25, mstruck:0, dstruck:0,
+    desc:'Kuwait continued to report waves of missiles and drones into its airspace through Wednesday morning. Stars and Stripes confirmed Kuwait air defences were actively engaged. All threats intercepted.',
+    news:[
+      {dot:'g',text:'Kuwait air defences intercept wave of missiles and drones.',time:'07 Mar · 08:00'}
+    ],
+    links:[
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-03-01/bases-damaged-iran-attacks-20916010.html'}
+    ]
+  },
+  {
+    id:'KW6MAR_WAVE', name:'Kuwait — Drone/Missile Wave Intercepted', area:'Multiple locations', emirate:'Kuwait',
+    lat:29.3, lon:47.9, type:'mixed', day:'06mar', time:'~06:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Ballistic missiles / drones', cas:'None confirmed', dmg:'None confirmed', rate:'>95%',
+    mwave:5, dwave:15, mstruck:0, dstruck:0,
+    desc:'Kuwait intercepted drone and missile threats on 6 March. US bases including Ali Al-Salem and Camp Arifjan remained under heavy fire throughout this period per Stars and Stripes.',
+    news:[
+      {dot:'g',text:'Kuwait air defences intercept missile and drone threats.',time:'06 Mar · 06:00'}
+    ],
+    links:[
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-03-01/bases-damaged-iran-attacks-20916010.html'}
+    ]
+  },
+  {
+    id:'KW5MAR_WAVE', name:'Kuwait — 7 Drones Intercepted Since Dawn', area:'Multiple locations', emirate:'Kuwait',
+    lat:29.308, lon:47.98, type:'drone', day:'05mar', time:'~06:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian drones', cas:'None', dmg:'Material damage from debris only', rate:'>95%',
+    mwave:0, dwave:7, mstruck:0, dstruck:0,
+    desc:'Kuwait said it intercepted seven drones since dawn, with attacks resulting only in material damage from falling debris. Kuwait national oil company had already announced precautionary production cuts due to ongoing attacks.',
+    news:[
+      {dot:'g',text:'Kuwait MOD: 7 drones intercepted since dawn. Only material damage from debris.',time:'05 Mar · 12:00'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635645/middle-east'}
+    ]
+  },
+  {
+    id:'KW4MAR_BUEHRING', name:'Camp Buehring — Drone Penetrates Defences', area:'Udairi, northwest Kuwait', emirate:'Kuwait',
+    lat:29.7, lon:47.49, type:'drone', day:'04mar', time:'~10:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian Shahed drone', cas:'None confirmed', dmg:'Explosion within perimeter', rate:'Partial failure',
+    mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Widely-circulated video recorded inside Camp Buehring showed an Iranian Shahed drone flying over the installation before exploding within the perimeter. TRT World confirmed Camp Buehring among seven primary US military sites targeted by Iran. No casualties reported from this specific strike.',
+    news:[
+      {dot:'r',text:'Iranian Shahed drone filmed flying over Camp Buehring; explodes inside perimeter.',time:'04 Mar · 10:00'},
+      {dot:'b',text:'Video circulates on social media. CENTCOM declines public comment.',time:'04 Mar · 11:00'}
+    ],
+    links:[
+      {label:'TRT World',url:'https://www.trtworld.com/article/35eac28b7995'},
+      {label:'CBS News',url:'https://www.cbsnews.com/news/iran-strike-kuwait-officials-question-fortifications/'}
+    ]
+  },
+  {
+    id:'KW3MAR_EMBASSY', name:'US Embassy Kuwait City — Missile Strike', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.3728, lon:47.9874, type:'missile', day:'03mar', time:'~06:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian ballistic missile', cas:'None reported', dmg:'Limited structural damage', rate:'Partial failure',
+    mwave:1, dwave:0, mstruck:1, dstruck:0,
+    desc:'US Embassy in Kuwait City struck by Iranian missile, subsequently closed indefinitely. Smoke seen rising near compound. No casualties reported. Embassy issued shelter-in-place advisory. Kuwait foreign ministry summoned the Iranian ambassador in protest.',
+    news:[
+      {dot:'a',text:'Smoke rising near US Embassy compound; Reuters witness reports.',time:'03 Mar · 06:00'},
+      {dot:'a',text:'Embassy confirms hit; closes indefinitely. Non-essential staff evacuated.',time:'03 Mar · 08:00'},
+      {dot:'b',text:'Kuwait Foreign Ministry summons Iranian Ambassador.',time:'03 Mar · 12:00'}
+    ],
+    links:[
+      {label:'Al Jazeera',url:'https://www.aljazeera.com/news/2026/3/2/blasts-shake-qatar-uae-kuwait-as-irans-retaliatory-strikes-continue'},
+      {label:'Wikipedia',url:'https://en.wikipedia.org/wiki/2026_Israeli%E2%80%93United_States_strikes_on_Iran'}
+    ]
+  },
+  {
+    id:'KW3MAR_FRIENDLY', name:'Friendly Fire — 3 US F-15Es Downed by Kuwait', area:'Northwest Kuwait', emirate:'Kuwait',
+    lat:29.6, lon:47.4, type:'mixed', day:'03mar', time:'~08:00 AST',
+    status:'FRIENDLY FIRE', sc:'a', strikes:1,
+    weapon:'Kuwaiti F/A-18 interceptors', cas:'None — all 6 US aircrew recovered safely', dmg:'3× F-15E Strike Eagles lost (~$282M)', rate:'N/A',
+    mwave:0, dwave:0, mstruck:0, dstruck:0,
+    desc:'Kuwait air defences mistakenly shot down three US F-15E Strike Eagles during the confusion of ongoing Iranian attack waves. A Kuwaiti F/A-18 engaged the aircraft. All six US crew members ejected safely with no major injuries. CENTCOM confirmed the losses. Kuwait MOD confirmed several US warplanes crashed and all crew survived.',
+    news:[
+      {dot:'a',text:'Kuwait F/A-18 mistakenly engages and downs 3 US F-15E Strike Eagles.',time:'03 Mar · 08:00'},
+      {dot:'g',text:'All 6 US aircrew eject and are recovered safely with no major injuries.',time:'03 Mar · 09:00'},
+      {dot:'b',text:'CENTCOM confirms 3 F-15E losses. Kuwait MOD: all crew survived.',time:'03 Mar · 10:00'},
+      {dot:'b',text:'Aircraft replacement cost estimated at $282 million.',time:'03 Mar · 14:00'}
+    ],
+    links:[
+      {label:'TRT World',url:'https://www.trtworld.com/article/35eac28b7995'},
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-03-01/bases-damaged-iran-attacks-20916010.html'},
+      {label:'ACLED',url:'https://acleddata.com/update/middle-east-special-issue-march-2026'}
+    ]
+  },
+  {
+    id:'KW3MAR_ALI_SALEM', name:'Ali Al-Salem Air Base — Continued Strikes', area:'Ali Al-Salem Air Base', emirate:'Kuwait',
+    lat:29.3461, lon:47.52, type:'mixed', day:'03mar', time:'~04:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Ballistic missiles / Shahed drones', cas:'3 Kuwaiti personnel lightly injured', dmg:'Collapsed rooftops at multiple points', rate:'~90%',
+    mwave:9, dwave:28, mstruck:0, dstruck:2,
+    desc:'Ali Al-Salem Air Base faced continued missile and drone strikes. TRT World confirmed collapsed rooftops at multiple points within the base. Three Kuwaiti personnel reported with light injuries from debris. The base hosts US 386th Air Expeditionary Wing and Italian forces.',
+    news:[
+      {dot:'r',text:'Missile and drone wave targets Ali Al-Salem Air Base.',time:'03 Mar · 04:00'},
+      {dot:'a',text:'Collapsed rooftops visible at multiple points within the base.',time:'03 Mar · 06:00'},
+      {dot:'a',text:'3 Kuwaiti personnel with light injuries from debris.',time:'03 Mar · 08:00'}
+    ],
+    links:[
+      {label:'TRT World',url:'https://www.trtworld.com/article/35eac28b7995'},
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-03-01/bases-damaged-iran-attacks-20916010.html'}
+    ]
+  },
+  {
+    id:'KW_SHUAIBA', name:'Port Shuaiba — Drone Strike Kills 6 US Troops', area:'Al-Shuaybah port, south Kuwait City', emirate:'Kuwait',
+    lat:29.0591, lon:48.1514, type:'drone', day:'02mar', time:'~22:00 AST (01 Mar)',
+    status:'FATAL STRIKE', sc:'r', strikes:1,
+    weapon:'Iranian Shahed kamikaze drone', cas:'6 US service members killed, 4 seriously injured', dmg:'Tactical operations center destroyed by fire', rate:'FULL PENETRATION',
+    mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Iranian drone struck a tactical operations center at Port Shuaiba, killing six US reservists from the 103rd Sustainment Command, Des Moines, Iowa — the only confirmed US combat fatalities of the campaign. The TOC had no counter-drone capability and crews received no warning siren. Fire engulfed the buildings. Pentagon identified Capt. Cody Khork, Sgt. 1st Class Noah Tietjens, Sgt. Declan Coady, and Spc. Nicole Amor (two others pending next-of-kin notification).',
+    news:[
+      {dot:'r',text:'Iranian drone strikes tactical operations center at Port Shuaiba.',time:'01 Mar · 22:00'},
+      {dot:'r',text:'Fire engulfs buildings. 6 US service members killed, 4 seriously injured.',time:'01 Mar · 22:15'},
+      {dot:'b',text:'CENTCOM confirms first US combat deaths of the war.',time:'02 Mar · 09:30'},
+      {dot:'b',text:'CBS News: TOC had no counter-drone system, no warning sirens fired.',time:'03 Mar · 12:00'},
+      {dot:'b',text:'Pentagon identifies victims; all from 103rd Sustainment Command, Des Moines IA.',time:'04 Mar · 14:00'}
+    ],
+    links:[
+      {label:'Washington Post',url:'https://www.washingtonpost.com/investigations/2026/03/04/troops-killed-kuwait-base-iran-attack/'},
+      {label:'CBS News',url:'https://www.cbsnews.com/news/iran-strike-kuwait-officials-question-fortifications/'},
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-03-01/bases-damaged-iran-attacks-20916010.html'}
+    ]
+  },
+  {
+    id:'KW2MAR_RUMAITHIYA', name:'Rumaithiya/Salwa — Residential Drone Wave', area:'Kuwait City suburbs', emirate:'Kuwait',
+    lat:29.327, lon:48.075, type:'drone', day:'02mar', time:'~04:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Iranian Shahed drones', cas:'None confirmed', dmg:'Material damage from one drone', rate:'~93%',
+    mwave:0, dwave:15, mstruck:0, dstruck:1,
+    desc:'Kuwaiti air defences intercepted the majority of drones near Rumaithiya and Salwa residential neighbourhoods per Kuwait News Agency citing the civil defence director general. One drone struck territory causing material damage.',
+    news:[
+      {dot:'r',text:'Drones detected over Rumaithiya and Salwa residential areas.',time:'02 Mar · 04:00'},
+      {dot:'g',text:'Majority intercepted by air defences.',time:'02 Mar · 04:15'},
+      {dot:'a',text:'One drone strikes territory; material damage reported.',time:'02 Mar · 04:30'}
+    ],
+    links:[
+      {label:'Al Jazeera',url:'https://www.aljazeera.com/news/2026/3/2/blasts-shake-qatar-uae-kuwait-as-irans-retaliatory-strikes-continue'}
+    ]
+  },
+  {
+    id:'KW2MAR_ALI_SALEM', name:'Ali Al-Salem Air Base — Day 3 Heavy Strike', area:'Ali Al-Salem Air Base', emirate:'Kuwait',
+    lat:29.3461, lon:47.522, type:'mixed', day:'02mar', time:'~06:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Ballistic missiles / Shahed drones', cas:'None confirmed', dmg:'Aircraft shelter structural damage', rate:'~88%',
+    mwave:20, dwave:45, mstruck:2, dstruck:3,
+    desc:'Ali Al-Salem Air Base (US 386th Air Expeditionary Wing and Italian forces) sustained heavy missile and drone fire on day 3. Satellite imagery confirmed structural damage to aircraft shelters. Kuwait overall reported 97 ballistic missiles and 283 drones intercepted by this point per Breaking Defense.',
+    news:[
+      {dot:'r',text:'New heavy wave of missiles and drones targeting Ali Al-Salem.',time:'02 Mar · 06:00'},
+      {dot:'a',text:'Structural damage to aircraft shelters confirmed by satellite imagery.',time:'02 Mar · 12:00'}
+    ],
+    links:[
+      {label:'Breaking Defense',url:'https://breakingdefense.com/2026/03/iran-attacks-uae-saudi-missiles-drones-gcc-air-defense/'},
+      {label:'TRT World',url:'https://www.trtworld.com/article/35eac28b7995'}
+    ]
+  },
+  {
+    id:'KW1MAR_ALI_SALEM', name:'Ali Al-Salem Air Base — Day 2 Wave', area:'Ali Al-Salem Air Base', emirate:'Kuwait',
+    lat:29.3461, lon:47.52, type:'missile', day:'01mar', time:'~05:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Ballistic missiles / Shahed drones', cas:'None confirmed', dmg:'Debris falls near base', rate:'~93%',
+    mwave:18, dwave:44, mstruck:0, dstruck:3,
+    desc:'Continued missile and drone attacks on Ali Al-Salem on day 2. Kuwait MOD confirmed missiles were intercepted; fragments and debris fell near the base. The base hosts Italian and US Air Force personnel.',
+    news:[
+      {dot:'r',text:'Missile and drone waves target Ali Al-Salem Air Base.',time:'01 Mar · 05:00'},
+      {dot:'g',text:'Majority intercepted. Debris falls near base.',time:'01 Mar · 06:00'}
+    ],
+    links:[
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-02-28/kuwait-air-base-attacked-20903985.html'}
+    ]
+  },,
+  {
+    id:'KW1MAR_ARIFJAN', name:'Camp Arifjan — Drone Strike', area:'Camp Arifjan, south Kuwait', emirate:'Kuwait',
+    lat:29.1989, lon:47.9389, type:'drone', day:'01mar', time:'~14:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Iranian Shahed drone', cas:'None confirmed', dmg:'Minor damage to structures', rate:'Partial failure',
+    mwave:0, dwave:1, mstruck:0, dstruck:0,
+    desc:'Camp Arifjan, a major US Army logistics hub in Kuwait, sustained a drone attack on 1 March. TRT World confirmed Camp Arifjan among seven primary US military sites targeted by Iran throughout the campaign. Stars and Stripes reported continued strikes on US bases in Kuwait through this period.',
+    news:[
+      {dot:'r',text:'Iranian drone targets Camp Arifjan logistics hub.',time:'01 Mar · 14:00'},
+      {dot:'b',text:'TRT World: Arifjan confirmed among 7 primary US sites targeted by Iran.',time:'01 Mar · 15:00'}
+    ],
+    links:[
+      {label:'TRT World',url:'https://www.trtworld.com/article/35eac28b7995'},
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-02-28/kuwait-air-base-attacked-20903985.html'}
+    ]
+  },
+  {
+    id:'KW1MAR_CIVILIAN', name:'Kuwait City — Civilian Girl Killed (Shrapnel)', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.378, lon:47.99, type:'debris', day:'01mar', time:'Unknown',
+    status:'FATAL DEBRIS', sc:'r', strikes:1,
+    weapon:'Interception debris / shrapnel', cas:'1 civilian killed (girl); 3+ total killed in Kuwait', dmg:'Civilian fatality', rate:'N/A',
+    mwave:0, dwave:0, mstruck:0, dstruck:0,
+    desc:'Kuwait Ministry of Health confirmed death of a girl from shrapnel-induced injuries. Al Jazeera casualty tracker reports at least three people killed in Kuwait since hostilities began. Wikipedia timeline notes Iranian attacks killed one person and injured 32 in Kuwait in this period.',
+    news:[
+      {dot:'r',text:'Girl hospitalised with shrapnel injuries from Iranian strike debris.',time:'01 Mar'},
+      {dot:'r',text:'Kuwait Ministry of Health confirms girl died from shrapnel.',time:'04 Mar · 14:00'}
+    ],
+    links:[
+      {label:'Al Jazeera tracker',url:'https://www.aljazeera.com/news/2026/3/1/us-israel-attacks-on-iran-death-toll-and-injuries-live-tracker'}
+    ]
+  },
+  {
+    id:'KW28FEB_AIRPORT', name:'Kuwait International Airport — Opening Drone Strike', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.2269, lon:47.9689, type:'drone', day:'28feb', time:'~17:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian drone', cas:'4 airport workers lightly injured', dmg:'Terminal damaged; runway extensive damage (Italy: ANSA)', rate:'Partial failure',
+    mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Drone struck Kuwait International Airport on the evening of 28 February, causing minor injuries to workers and material damage to passenger terminal. Italian Deputy PM Tajani stated runway sustained extensive damage per ANSA. Kuwait GCAA confirmed the strike. Airport temporarily closed.',
+    news:[
+      {dot:'r',text:'Drone strikes Kuwait International Airport passenger terminal.',time:'28 Feb · 17:00'},
+      {dot:'a',text:'Minor injuries to workers; terminal and runway damaged.',time:'28 Feb · 17:30'},
+      {dot:'b',text:'Italian Deputy PM: runway sustained extensive damage (ANSA).',time:'28 Feb · 20:00'}
+    ],
+    links:[
+      {label:'Al Jazeera',url:'https://www.aljazeera.com/news/2026/2/28/multiple-gulf-arab-states-that-host-us-assets-targeted-in-iran-retaliation'},
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-02-28/kuwait-air-base-attacked-20903985.html'}
+    ]
+  },
+  {
+    id:'KW28FEB_ALI_SALEM', name:'Ali Al-Salem Air Base — Opening Missile Strike', area:'Ali Al-Salem Air Base', emirate:'Kuwait',
+    lat:29.3461, lon:47.52, type:'missile', day:'28feb', time:'~12:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles', cas:'None confirmed', dmg:'Debris falls near base', rate:'~91%',
+    mwave:15, dwave:11, mstruck:0, dstruck:1,
+    desc:'Ali Al-Salem Air Base (US 386th Air Expeditionary Wing, Italian forces) came under ballistic missile attack in the opening IRGC wave. Kuwait MOD confirmed all missiles intercepted. IRGC claimed Ali Al-Salem as one of four primary US bases struck. Interception debris fell near the base.',
+    news:[
+      {dot:'r',text:'IRGC targets Ali Al-Salem as one of four primary US bases in opening wave.',time:'28 Feb · 12:00'},
+      {dot:'g',text:'Kuwait MOD: ballistic missiles intercepted; debris falls near base.',time:'28 Feb · 12:30'},
+      {dot:'b',text:'Kuwait foreign ministry condemns attack; Iranian ambassador summoned.',time:'28 Feb · 16:00'}
+    ],
+    links:[
+      {label:'Al Jazeera',url:'https://www.aljazeera.com/news/2026/2/28/multiple-gulf-arab-states-that-host-us-assets-targeted-in-iran-retaliation'},
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-02-28/kuwait-air-base-attacked-20903985.html'}
+    ]
+  },
+  {
+    id:'KW28FEB_BUEHRING', name:'Camp Buehring — Opening Drone Strike', area:'Udairi, northwest Kuwait', emirate:'Kuwait',
+    lat:29.7, lon:47.49, type:'drone', day:'28feb', time:'~13:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian drone', cas:'None confirmed', dmg:'Strike confirmed on US garrison', rate:'Partial failure',
+    mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Iranian drone struck the US garrison at Camp Buehring in the opening day of the campaign. Camp Buehring is a major US Army staging base in northeast Kuwait. TRT World confirmed it as one of seven primary US military sites targeted by Iran.',
+    news:[
+      {dot:'r',text:'Iranian drone strikes US garrison at Camp Buehring.',time:'28 Feb · 13:00'},
+      {dot:'b',text:'TRT World: Buehring confirmed among 7 primary US sites targeted by Iran.',time:'28 Feb · 14:00'}
+    ],
+    links:[
+      {label:'TRT World',url:'https://www.trtworld.com/article/35eac28b7995'},
+      {label:'Wikipedia',url:'https://en.wikipedia.org/wiki/2026_Iranian_strikes_on_Kuwait'}
+    ]
+  },
+  {
+    id:'SA7MAR_SHAYBAH2', name:'Shaybah Oilfield — 2nd Wave (21 Drones)', area:'Rub al-Khali, Empty Quarter', emirate:'Saudi Arabia',
+    lat:22.515, lon:53.99, type:'drone', day:'07mar', time:'~02:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian drones (x21)', cas:'None', dmg:'None — all destroyed in desert', rate:'100%',
+    mwave:0, dwave:21, mstruck:0, dstruck:0,
+    desc:'Saudi air defences intercepted 21 drones targeting Shaybah — the largest single attempted strike on Saudi energy infrastructure in the campaign. All drones destroyed in the Empty Quarter before reaching the facility, which produces around 1 million b/d.',
+    news:[
+      {dot:'r',text:'21-drone wave detected heading toward Shaybah oil field, Empty Quarter.',time:'07 Mar · 01:30'},
+      {dot:'g',text:'Saudi MOD: all 21 intercepted in Empty Quarter. No damage.',time:'07 Mar · 03:00'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635545/saudi-arabia'},
+      {label:'The National',url:'https://www.thenationalnews.com/news/gulf/2026/03/07/saudi-arabia-foils-three-iranian-drone-attacks-on-oil-field-near-uae-border/'}
+    ]
+  },
+  {
+    id:'SA7MAR_PSB', name:'Prince Sultan Air Base — Day 7 Missiles', area:'Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.0629, lon:47.5797, type:'missile', day:'07mar', time:'~02:30 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles (x5)', cas:'None', dmg:'None', rate:'100%',
+    mwave:5, dwave:0, mstruck:0, dstruck:0,
+    desc:'Five ballistic missiles targeting Prince Sultan Air Base intercepted — seventh consecutive day of attempted strikes. The base hosts US Air Force personnel. All missiles destroyed before reaching the base.',
+    news:[
+      {dot:'r',text:'5 ballistic missiles launched toward Prince Sultan Air Base.',time:'07 Mar · 02:30'},
+      {dot:'g',text:'Saudi MOD: all 5 intercepted. No damage or casualties.',time:'07 Mar · 03:00'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635545/saudi-arabia'}
+    ]
+  },
+  {
+    id:'SA7MAR_RIYADH', name:'East Riyadh — Drone Intercept', area:'East Riyadh', emirate:'Saudi Arabia',
+    lat:24.7741, lon:46.89, type:'drone', day:'07mar', time:'~04:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian drone', cas:'None', dmg:'None', rate:'100%',
+    mwave:0, dwave:1, mstruck:0, dstruck:0,
+    desc:'A single drone intercepted east of Riyadh. Saudi MOD spokesperson confirmed the intercept with no further details on the intended target.',
+    news:[
+      {dot:'g',text:'Saudi MOD: drone intercepted east of Riyadh.',time:'07 Mar · 04:00'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635545/saudi-arabia'}
+    ]
+  },
+  {
+    id:'SA6MAR_PSB', name:'Prince Sultan Air Base — Day 6 Missiles', area:'Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.0629, lon:47.5797, type:'missile', day:'06mar', time:'~22:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles (x5)', cas:'None', dmg:'None', rate:'100%',
+    mwave:5, dwave:0, mstruck:0, dstruck:0,
+    desc:'Saudi air defences intercepted five missiles targeting Prince Sultan Air Base for the sixth consecutive day.',
+    news:[
+      {dot:'r',text:'5 missiles detected heading for Prince Sultan Air Base.',time:'06 Mar · 22:00'},
+      {dot:'g',text:'All 5 intercepted. Saudi MOD confirms no damage.',time:'06 Mar · 22:30'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635545/saudi-arabia'}
+    ]
+  },
+  {
+    id:'SA6MAR_DRONES', name:'East Riyadh / Al-Kharj — Drones Intercepted', area:'East Riyadh / Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.28, lon:47.3, type:'drone', day:'06mar', time:'~20:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Iranian drones (x7)', cas:'None', dmg:'Material damage (1 drone struck)', rate:'~86%',
+    mwave:0, dwave:7, mstruck:0, dstruck:1,
+    desc:'Saudi air defences intercepted multiple drones over eastern Riyadh and Al-Kharj. One drone struck territory causing material damage.',
+    news:[
+      {dot:'g',text:'Multiple drones intercepted over eastern Riyadh region.',time:'06 Mar · 20:00'},
+      {dot:'a',text:'One drone strikes territory; material damage reported.',time:'06 Mar · 20:30'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635545/saudi-arabia'}
+    ]
+  },
+  {
+    id:'SA5MAR_KHARJ', name:'Al-Kharj — Cruise Missiles Intercepted', area:'Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.15, lon:47.6, type:'missile', day:'05mar', time:'~06:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian cruise missiles (x3)', cas:'None', dmg:'None', rate:'100%',
+    mwave:3, dwave:0, mstruck:0, dstruck:0,
+    desc:'Three cruise missiles targeting Al-Kharj governorate intercepted — first cruise missile attempt on Al-Kharj in the campaign. Saudi MOD confirmed.',
+    news:[
+      {dot:'r',text:'3 cruise missiles tracked toward Al-Kharj.',time:'05 Mar · 06:00'},
+      {dot:'g',text:'Saudi MOD: all 3 intercepted outside Al-Kharj.',time:'05 Mar · 06:30'}
+    ],
+    links:[
+      {label:'Long War Journal',url:'https://www.longwarjournal.org/archives/2026/03/iran-targets-us-bases-diplomatic-missions-and-oil-infrastructure-in-arab-countries-on-march-3-5.php'}
+    ]
+  },
+  {
+    id:'SA5MAR_RASTANURA2', name:'Ras Tanura — 2nd Drone Wave Intercepted', area:'Ras Tanura', emirate:'Saudi Arabia',
+    lat:26.6467, lon:50.16, type:'drone', day:'05mar', time:'~03:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian drones (x5)', cas:'None', dmg:'None — refinery already shut', rate:'100%',
+    mwave:0, dwave:5, mstruck:0, dstruck:0,
+    desc:'Second wave of drones targeting Ras Tanura refinery intercepted. Refinery remained under precautionary shutdown from the 2 March attack.',
+    news:[
+      {dot:'r',text:'Drones detected heading for Ras Tanura refinery.',time:'05 Mar · 03:00'},
+      {dot:'g',text:'All drones intercepted. No new damage.',time:'05 Mar · 04:00'}
+    ],
+    links:[
+      {label:'Al Jazeera',url:'https://www.aljazeera.com/news/2026/3/4/hundreds-of-drones-target-kuwait-iraq-saudi-arabia-uae-amid-iran-war'}
+    ]
+  },
+  {
+    id:'SA4MAR_PSB', name:'Prince Sultan Air Base — Day 4 Missiles', area:'Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.0629, lon:47.5797, type:'missile', day:'04mar', time:'~23:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles (x2)', cas:'None', dmg:'None', rate:'100%',
+    mwave:2, dwave:0, mstruck:0, dstruck:0,
+    desc:'Two ballistic missiles targeting Prince Sultan Air Base intercepted. No damage or casualties at the base.',
+    news:[
+      {dot:'r',text:'2 ballistic missiles launched toward Prince Sultan Air Base.',time:'04 Mar · 23:00'},
+      {dot:'g',text:'Both intercepted. No damage or casualties confirmed.',time:'04 Mar · 23:30'}
+    ],
+    links:[
+      {label:'Stars and Stripes',url:'https://www.stripes.com/theaters/middle_east/2026-03-01/bases-damaged-iran-attacks-20916010.html'}
+    ]
+  },
+  {
+    id:'SA3MAR_EMBASSY', name:'US Embassy Riyadh — CIA Station Struck', area:'Diplomatic Quarter, Riyadh', emirate:'Saudi Arabia',
+    lat:24.672, lon:46.638, type:'drone', day:'03mar', time:'~08:00 AST',
+    status:'STRUCK', sc:'r', strikes:1,
+    weapon:'Iranian drones (x2)', cas:'None confirmed', dmg:'Limited fire; minor structural damage', rate:'Full penetration',
+    mwave:0, dwave:2, mstruck:0, dstruck:2,
+    desc:'Two Iranian drones struck the US Embassy compound in Riyadh, causing a limited fire and minor structural damage. Washington Post reported the CIA station was believed to have been targeted. Embassy closed until further notice; non-essential staff evacuated.',
+    news:[
+      {dot:'r',text:'Two Iranian drones strike US Embassy compound, Diplomatic Quarter.',time:'03 Mar · 08:00'},
+      {dot:'a',text:'Fire reported inside compound. Saudi authorities: limited fire, minor material damage.',time:'03 Mar · 08:30'},
+      {dot:'a',text:'Washington Post: CIA station at embassy believed to have been struck.',time:'03 Mar · 12:00'},
+      {dot:'b',text:'US Embassy closes until further notice; non-essential staff evacuation begins.',time:'03 Mar · 14:00'}
+    ],
+    links:[
+      {label:'Washington Post',url:'https://www.washingtonpost.com/national-security/2026/03/03/cia-saudi-arabia-drone-attack-iran/'},
+      {label:'Long War Journal',url:'https://www.longwarjournal.org/archives/2026/03/iran-targets-us-bases-diplomatic-missions-and-oil-infrastructure-in-arab-countries-on-march-3-5.php'}
+    ]
+  },
+  {
+    id:'SA3MAR_RIYADH', name:'Riyadh / Al-Kharj — 8 Drones Intercepted', area:'Riyadh / Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.4, lon:46.9, type:'drone', day:'03mar', time:'~07:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian drones (x8)', cas:'None', dmg:'None', rate:'100%',
+    mwave:0, dwave:8, mstruck:0, dstruck:0,
+    desc:'Saudi air defences intercepted eight drones over Riyadh and Al-Kharj, concurrent with the US Embassy strikes.',
+    news:[
+      {dot:'g',text:'8 drones intercepted over Riyadh and Al-Kharj areas.',time:'03 Mar · 07:00'}
+    ],
+    links:[
+      {label:'Long War Journal',url:'https://www.longwarjournal.org/archives/2026/03/iran-targets-us-bases-diplomatic-missions-and-oil-infrastructure-in-arab-countries-on-march-3-5.php'}
+    ]
+  },
+  {
+    id:'SA3MAR_DHAHRAN', name:'US Consulate Dhahran — Threat Alert', area:'Dhahran', emirate:'Saudi Arabia',
+    lat:26.286, lon:50.014, type:'mixed', day:'03mar', time:'~07:30 AST',
+    status:'THREAT / LIKELY INTERCEPTED', sc:'p', strikes:1,
+    weapon:'Missiles / drones (unconfirmed)', cas:'None', dmg:'None confirmed', rate:'Likely intercepted',
+    mwave:0, dwave:0, mstruck:0, dstruck:0,
+    desc:'US issued security alert warning Americans to avoid the Consulate in Dhahran due to incoming missile and drone threats. No confirmed strikes on the consulate. Saudi air defences active across Eastern Province.',
+    news:[
+      {dot:'a',text:'US alert: avoid US Consulate in Dhahran due to incoming threats.',time:'03 Mar · 07:30'},
+      {dot:'b',text:'Saudi air defences active in Eastern Province; projectiles likely intercepted.',time:'03 Mar · 08:00'}
+    ],
+    links:[
+      {label:'Long War Journal',url:'https://www.longwarjournal.org/archives/2026/03/iran-targets-us-bases-diplomatic-missions-and-oil-infrastructure-in-arab-countries-on-march-3-5.php'}
+    ]
+  },
+  {
+    id:'SA2MAR_RASTANURA', name:'Ras Tanura Refinery — Drone Strike and Fire', area:'Ras Tanura', emirate:'Saudi Arabia',
+    lat:26.6467, lon:50.16, type:'drone', day:'02mar', time:'~05:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Iranian drones (x2)', cas:'None', dmg:'Fire at refinery; production halted (550k b/d)', rate:'Debris caused fire',
+    mwave:0, dwave:2, mstruck:0, dstruck:0,
+    desc:'Iranian drones targeted Aramco Ras Tanura refinery (550,000 b/d). Both drones intercepted but debris caused a fire. Aramco halted production as precaution; LPG exports suspended. Oil prices spiked globally.',
+    news:[
+      {dot:'r',text:'Iranian drones inbound to Ras Tanura refinery.',time:'02 Mar · 05:00'},
+      {dot:'a',text:'Drones intercepted; interception debris causes fire at facility.',time:'02 Mar · 05:30'},
+      {dot:'a',text:'Aramco halts production as precaution; LPG exports suspended.',time:'02 Mar · 09:00'},
+      {dot:'b',text:'Saudi official: no impact on supply of petroleum products to local markets.',time:'02 Mar · 12:00'}
+    ],
+    links:[
+      {label:'Euronews',url:'https://www.euronews.com/2026/03/02/drones-hit-saudi-ras-tanura-refinery-as-iran-strikes-targets-across-region'},
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635226/saudi-arabia'}
+    ]
+  },
+  {
+    id:'SA2MAR_PSB', name:'Prince Sultan Air Base — Day 2 Missiles', area:'Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.0629, lon:47.5797, type:'missile', day:'02mar', time:'~06:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles (x2)', cas:'None', dmg:'None', rate:'100%',
+    mwave:2, dwave:0, mstruck:0, dstruck:0,
+    desc:'Two ballistic missiles intercepted and destroyed en route to Prince Sultan Air Base. Saudi MOD confirmed.',
+    news:[
+      {dot:'r',text:'2 ballistic missiles launched toward Prince Sultan Air Base.',time:'02 Mar · 06:00'},
+      {dot:'g',text:'Saudi MOD: both intercepted and destroyed. No damage.',time:'02 Mar · 06:30'}
+    ],
+    links:[
+      {label:'Arab News',url:'https://www.arabnews.com/node/2635226/saudi-arabia'}
+    ]
+  },,
+  {
+    id:'SA2MAR_EASTERN', name:'Eastern Province — Day 2 Air Defence Activity', area:'Dammam / Dhahran area', emirate:'Saudi Arabia',
+    lat:26.4350, lon:50.1030, type:'mixed', day:'02mar', time:'~06:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Ballistic missiles / drones', cas:'None confirmed', dmg:'None', rate:'>90%',
+    mwave:0, dwave:15, mstruck:0, dstruck:0,
+    desc:'Saudi air defences remained active across Eastern Province on 2 March with continued attempts to target oil infrastructure and US facilities in the Dammam-Dhahran area. All threats intercepted per Saudi MOD.',
+    news:[
+      {dot:'g',text:'Saudi air defences active across Eastern Province; all threats intercepted.',time:'02 Mar · 06:00'}
+    ],
+    links:[
+      {label:'Saudi Press Agency',url:'https://www.spa.gov.sa/en'}
+    ]
+  },
+  {
+    id:'SA1MAR_SHAYBAH', name:'Shaybah Oilfield — 1st Wave (10 Drones)', area:'Rub al-Khali, Empty Quarter', emirate:'Saudi Arabia',
+    lat:22.515, lon:53.99, type:'drone', day:'01mar', time:'~22:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian drones (x10)', cas:'None', dmg:'None', rate:'100%',
+    mwave:0, dwave:10, mstruck:0, dstruck:0,
+    desc:'Saudi air defences intercepted 10 drones targeting Shaybah oilfield near the UAE border — the first attempted strike on the facility. All drones destroyed before reaching the site.',
+    news:[
+      {dot:'r',text:'10 drones detected heading toward Shaybah oil field.',time:'01 Mar · 22:00'},
+      {dot:'g',text:'All 10 intercepted before reaching Shaybah. No damage.',time:'01 Mar · 22:30'}
+    ],
+    links:[
+      {label:'The National',url:'https://www.thenationalnews.com/news/gulf/2026/03/07/saudi-arabia-foils-three-iranian-drone-attacks-on-oil-field-near-uae-border/'}
+    ]
+  },
+  {
+    id:'SA28FEB_RIYADH', name:'Riyadh — Opening Ballistic Missile Barrage', area:'Riyadh', emirate:'Saudi Arabia',
+    lat:24.688, lon:46.722, type:'missile', day:'28feb', time:'~10:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles', cas:'None confirmed', dmg:'None — all intercepted', rate:'100%',
+    mwave:25, dwave:0, mstruck:0, dstruck:0,
+    desc:'Iranian ballistic missiles struck Saudi soil for the first time in modern history. Explosions across eastern Riyadh. IRGC confirmed targeting of Prince Sultan Air Base. Saudi MOD stated all attacks were repulsed. The attack effectively ended the 2023 China-brokered Saudi-Iran rapprochement.',
+    news:[
+      {dot:'r',text:'Iranian ballistic missiles detected inbound toward Riyadh.',time:'28 Feb · 10:00'},
+      {dot:'a',text:'Explosions heard across eastern Riyadh; air defence batteries fire over capital.',time:'28 Feb · 10:15'},
+      {dot:'g',text:'Saudi MOD: all missiles intercepted; no material losses.',time:'28 Feb · 11:00'},
+      {dot:'b',text:'Saudi Foreign Ministry condemns attacks as flagrant violation of sovereignty.',time:'28 Feb · 13:00'}
+    ],
+    links:[
+      {label:'ACLED',url:'https://acleddata.com/update/middle-east-special-issue-march-2026'},
+      {label:'Reuters',url:'https://www.reuters.com/world/middle-east/'}
+    ]
+  },
+  {
+    id:'SA28FEB_PSB', name:'Prince Sultan Air Base — Opening Strike', area:'Al-Kharj', emirate:'Saudi Arabia',
+    lat:24.0629, lon:47.5797, type:'missile', day:'28feb', time:'~09:30 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles', cas:'None', dmg:'None', rate:'100%',
+    mwave:5, dwave:0, mstruck:0, dstruck:0,
+    desc:'IRGC confirmed Prince Sultan Air Base as a primary target in the opening wave. Saudi MOD confirmed all incoming projectiles were intercepted. The base hosts US Air Force personnel.',
+    news:[
+      {dot:'r',text:'IRGC: Prince Sultan Air Base targeted in opening salvo.',time:'28 Feb · 09:30'},
+      {dot:'g',text:'Saudi air defences intercept all missiles targeting the base.',time:'28 Feb · 10:00'}
+    ],
+    links:[
+      {label:'Saudi MOD',url:'https://twitter.com/Saudi_MOD'}
+    ]
+  },
+  {
+    id:'SA28FEB_EASTERN', name:'Eastern Province — Opening Air Defence Activation', area:'Dammam / Dhahran area', emirate:'Saudi Arabia',
+    lat:26.435, lon:50.103, type:'mixed', day:'28feb', time:'~10:00 AST',
+    status:'PARTIAL HIT', sc:'a', strikes:1,
+    weapon:'Ballistic missiles / Shahed drones', cas:'None confirmed', dmg:'Some drones struck territory', rate:'~80%',
+    mwave:5, dwave:15, mstruck:0, dstruck:3,
+    desc:'Saudi air defences activated across Eastern Province as Iran launched the opening wave. Multiple intercepts confirmed. Some drones penetrated defences causing material damage. Eastern Province hosts the majority of Saudi oil infrastructure.',
+    news:[
+      {dot:'r',text:'Air defence batteries active across Eastern Province; multiple intercepts.',time:'28 Feb · 10:00'},
+      {dot:'a',text:'Some drones penetrate defences; civil defence deployed.',time:'28 Feb · 11:00'}
+    ],
+    links:[
+      {label:'Saudi Press Agency',url:'https://www.spa.gov.sa/en'},
+      {label:'Breaking Defense',url:'https://breakingdefense.com/2026/03/iran-attacks-uae-saudi-missiles-drones-gcc-air-defense/'}
+    ]
+  },
+  {
+    id:'SA28FEB_AIRPORT', name:'King Khalid Airport — Missile Intercept', area:'Riyadh', emirate:'Saudi Arabia',
+    lat:24.958, lon:46.699, type:'missile', day:'28feb', time:'~10:00 AST',
+    status:'INTERCEPTED', sc:'g', strikes:1,
+    weapon:'Iranian ballistic missiles', cas:'None', dmg:'None — airport operational', rate:'100%',
+    mwave:0, dwave:0, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia intercepted missiles aimed at King Khalid International Airport in Riyadh. Airport remained operational.',
+    news:[
+      {dot:'r',text:'Missiles detected targeting King Khalid International Airport.',time:'28 Feb · 10:00'},
+      {dot:'g',text:'All missiles intercepted. Airport remained operational.',time:'28 Feb · 10:30'}
+    ],
+    links:[
+      {label:'Saudi Press Agency',url:'https://www.spa.gov.sa/en'}
+    ]
+  }
+];
+
+
+// ── DAY TABS ──────────────────────────────────────────────────────────────
+function buildDayTabs() {
+  const el = document.getElementById('daytabs');
+  DAYS.forEach(d => {
+    const b = document.createElement('button');
+    b.className = 'dbtab' + (d.k==='all' ? ' active' : '');
+    b.textContent = d.l;
+    b.dataset.k = d.k;
+    b.onclick = () => setDay(d.k);
+    el.appendChild(b);
+  });
+}
+
+function setDay(k) {
+  activeDay = k;
+  document.querySelectorAll('#daytabs .dbtab').forEach(b =>
+    b.classList.toggle('active', b.dataset.k === k));
+  buildMarkers();
+  buildList();
+  updateStats();
+  map.closePopup();
+}
+
+function setType(el, t) {
+  typeFilter = t;
+  document.querySelectorAll('.tftab').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  buildMarkers();
+  buildList();
+  map.closePopup();
+}
+
+function setCountry(el, c) {
+  countryFilter = c;
+  document.querySelectorAll('.ctab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  buildMarkers();
+  buildList();
+  updateStats();
+  map.closePopup();
+}
+
+// ── ICONS ─────────────────────────────────────────────────────────────────
+const T_ICON_HTML = {
+  drone:  '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/><circle cx="10" cy="10" r="3.5" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/><circle cx="10" cy="10" r="1.2" fill="white"/><line x1="10" y1="1" x2="10" y2="4" stroke="white" stroke-width="1.3"/><line x1="10" y1="16" x2="10" y2="19" stroke="white" stroke-width="1.3"/><line x1="1" y1="10" x2="4" y2="10" stroke="white" stroke-width="1.3"/><line x1="16" y1="10" x2="19" y2="10" stroke="white" stroke-width="1.3"/></svg>',
+  missile:'<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2 L13 8 L11.2 8 L11.2 17 L8.8 17 L8.8 8 L7 8 Z" fill="white"/><path d="M8.8 13.5 L5.5 17.5 L8.8 16Z" fill="white"/><path d="M11.2 13.5 L14.5 17.5 L11.2 16Z" fill="white"/><circle cx="10" cy="3" r="1.3" fill="white"/></svg>',
+  debris: '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" fill="white"/><line x1="10" y1="2" x2="10" y2="5.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14.5" x2="10" y2="18" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="10" x2="5.5" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="14.5" y1="10" x2="18" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="4" x2="6.5" y2="6.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="13.5" y1="13.5" x2="16" y2="16" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="16" y1="4" x2="13.5" y2="6.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="4" y1="16" x2="6.5" y2="13.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>',
+  mixed:  '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2.5 L18 17 L2 17 Z" stroke="white" stroke-width="1.5" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/><line x1="10" y1="8" x2="10" y2="12.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="14.5" r="1" fill="white"/></svg>',
+};
+
+function mkIcon(inc) {
+  const countBadge = inc.strikes > 1 ? `<div class="mc-count">${inc.strikes}×</div>` : '';
+  return L.divIcon({
+    className:'',
+    html:`<div class="mi"><div class="mc ${inc.type}">${T_ICON_HTML[inc.type] || ''}${countBadge}</div></div>`,
+    iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,20]
+  });
+}
+
+// ── Popup builder ──
+const T_LABEL = { drone:'Drone Strike', missile:'Ballistic Missile', debris:'Interception Debris', mixed:'Mixed / Unclear' };
+
+// ── POPUP ─────────────────────────────────────────────────────────────────
+function mkPopup(inc) {
+  const d = DAILY[inc.day] || DAILY.all;
+  const casHit = !inc.cas.startsWith('None');
+  const newsHtml = inc.news.map(n => `
+    <div class="news-item">
+      <div class="news-dot ${n.dot}"></div>
+      <div class="news-body"><div class="news-text">${n.text}</div><div class="news-meta">${n.time}</div></div>
+    </div>`).join('');
+
+  const linksHtml = inc.links && inc.links.length ? `
+<div class="pu-links">
+  <div class="pu-links-title">Source references</div>
+  <div class="pu-link-row">
+    ${inc.links.map(l => `<a class="pu-link" href="${l.url}" target="_blank" rel="noopener"><span class="pu-link-icon">↗</span>${l.label}</a>`).join('')}
+  </div>
+</div>` : '';
+
+  return `
+<div class="pu-hdr ${inc.type}">
+  <div class="pu-top">
+    <div class="pu-icon-wrap ${inc.type}">${T_ICON_HTML[inc.type]||''}</div>
+    <div class="pu-meta">
+      <div class="pu-badges">
+        <div class="pu-tbadge ${inc.type}">${T_LABEL[inc.type].toUpperCase()}</div>
+        <div class="pu-sbadge ${inc.sc}">${inc.status}</div>
+        ${inc.strikes > 1 ? `<div class="pu-sbadge a">${inc.strikes}× TOTAL HITS</div>` : ''}
+      </div>
+      <div class="pu-name">${inc.name}</div>
+      <div class="pu-city">📍 ${inc.area} · <strong>${inc.emirate}</strong></div>
+      <div class="pu-dt">⏱ ${d.label} · ${inc.time}</div>
+    </div>
+  </div>
+</div>
+<div class="pu-body">
+<div class="pu-grid">
+  <div class="pu-cell"><div class="pu-cell-k">Weapon</div><div class="pu-cell-v">${inc.weapon}</div></div>
+  <div class="pu-cell"><div class="pu-cell-k">Casualties</div><div class="pu-cell-v ${casHit?'r':'g'}">${inc.cas}</div></div>
+  <div class="pu-cell"><div class="pu-cell-k">Damage</div><div class="pu-cell-v">${inc.dmg}</div></div>
+  <div class="pu-cell"><div class="pu-cell-k">Day intercept rate</div><div class="pu-cell-v g">${inc.rate}</div></div>
+  <div class="pu-cell"><div class="pu-cell-k">Missiles this wave</div><div class="pu-cell-v r">${inc.mwave} fired · ${inc.mstruck !== undefined ? inc.mstruck+' struck' : '—'}</div></div>
+  <div class="pu-cell"><div class="pu-cell-k">Drones this wave</div><div class="pu-cell-v a">${inc.dwave} fired · ${inc.dstruck !== undefined ? inc.dstruck+' struck' : '—'}</div></div>
+</div>
+<div class="pu-desc">${inc.desc}</div>
+<div class="pu-news"><div class="pu-news-title">Incident Timeline</div>${newsHtml}</div>
+${linksHtml}
+<div class="pu-foot">
+  <span>${inc.lat.toFixed(4)}°N ${inc.lon.toFixed(4)}°E · ${inc.emirate}</span>
+  <span>AKE International · 07 Mar 2026</span>
+</div>
+</div>`;
+}
+
+// ── Build markers ──
+
+// ── MARKERS ───────────────────────────────────────────────────────────────
+function buildMarkers() {
+  lgInc.clearLayers();
+  Object.keys(MKR).forEach(k => delete MKR[k]);
+  INCIDENTS
+    .filter(i =>
+      (activeDay === 'all'     || i.day     === activeDay)     &&
+      (typeFilter === 'all'    || i.type    === typeFilter)    &&
+      (countryFilter === 'all' || i.emirate === countryFilter))
+    .forEach(inc => {
+      const m = L.marker([inc.lat, inc.lon], {icon: mkIcon(inc)})
+        .bindPopup(mkPopup(inc), {maxWidth:430, className:'',
+          closeButton:true, autoPan:true,
+          autoPanPaddingTopLeft:L.point(0,100),
+          autoPanPaddingBottomRight:L.point(10,40)})
+        .addTo(lgInc);
+      MKR[inc.id] = m;
+      m.on('popupopen',  () => { activeId = inc.id; hilite(inc.id, true);  });
+      m.on('popupclose', () => { if(activeId===inc.id){activeId=null; hilite(inc.id,false);} });
+    });
+}
+
+// ── LIST ──────────────────────────────────────────────────────────────────
+function buildList() {
+  const el = document.getElementById('alist');
+  el.innerHTML = '';
+  const shown = INCIDENTS.filter(i =>
+    (activeDay === 'all'     || i.day     === activeDay)     &&
+    (typeFilter === 'all'    || i.type    === typeFilter)    &&
+    (countryFilter === 'all' || i.emirate === countryFilter));
+  if (!shown.length) {
+    el.innerHTML = '<div style="padding:16px 12px;font-size:11px;color:var(--muted)">No incidents match filters.</div>';
+    return;
+  }
+  shown.forEach(inc => {
+    const hasHit = (inc.mstruck + inc.dstruck) > 0;
+    const hasCas = !inc.cas.startsWith('None');
+    const row = document.createElement('div');
+    row.className = 'ap-row';
+    row.id = 'row-' + inc.id;
+    row.innerHTML = `
+      <div class="ap-pip ${inc.type}"></div>
+      <div class="ap-info">
+        <div class="ap-name">${inc.name}</div>
+        <div class="ap-city">${inc.emirate} · ${inc.time}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
+        <span class="ap-badge ${inc.type}">${inc.type.charAt(0).toUpperCase()+inc.type.slice(1)}</span>
+        ${hasCas ? '<span style="font-size:7.5px;color:#f87171;font-weight:700">⚠ CAS</span>' : ''}
+      </div>`;
+    row.addEventListener('click', () => {
+      const m = MKR[inc.id];
+      if (m) {
+        map.setView([inc.lat, inc.lon], Math.max(map.getZoom(), 11), {animate:true});
+        setTimeout(() => m.openPopup(), 350);
+      }
+    });
+    el.appendChild(row);
+  });
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────
+function updateStats() {
+  const s = DAILY[activeDay] || DAILY.all;
+  const tl = s.ml + s.dl, ti = s.mi + s.di;
+  const rate = tl > 0 ? Math.round(ti / tl * 100) : 0;
+  // Per-incident hit counts scoped to current day + country filters
+  const scope = INCIDENTS.filter(i =>
+    (activeDay === 'all'     || i.day     === activeDay)     &&
+    (countryFilter === 'all' || i.emirate === countryFilter));
+  const ksaHits = scope.filter(i => i.emirate==='Saudi Arabia' && (i.mstruck+i.dstruck)>0).length;
+  const kwHits  = scope.filter(i => i.emirate==='Kuwait'       && (i.mstruck+i.dstruck)>0).length;
+  const totHits = scope.filter(i => (i.mstruck+i.dstruck)>0).length;
+  document.getElementById('tot-int').textContent     = rate + '%';
+  document.getElementById('tot-struck').textContent  = totHits;
+  document.getElementById('tot-ksa-hits').textContent = ksaHits;
+  document.getElementById('tot-kw-hits').textContent  = kwHits;
+}
+
+// ── HILITE ────────────────────────────────────────────────────────────────
+function hilite(id, on) {
+  document.querySelectorAll('.ap-row').forEach(r => r.classList.remove('hilited'));
+  const r = document.getElementById('row-'+id);
+  if (r && on) { r.classList.add('hilited'); r.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────
+function tick() {
+  const g = new Date(Date.now() + 3 * 3600000);
+  const ts = [g.getUTCHours(), g.getUTCMinutes(), g.getUTCSeconds()]
+    .map(n => String(n).padStart(2,'0')).join(':') + ' AST';
+  const el = document.getElementById('hts');
+  if (el) el.textContent = ts;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+buildDayTabs();
+buildMarkers();
+buildList();
+updateStats();
+setInterval(tick, 1000);
+tick();
+map.fitBounds([[21.5, 35.5],[32.5, 57.0]], {padding:[22, 22]});
+</script>
+</body>
+</html>
