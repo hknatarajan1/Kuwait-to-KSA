@@ -7,13 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<!-- build:1773284009 -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
   --ake1:#00549f; --ake2:#0a2d52; --ake3:#0d1640;
   --panel:#0f1520; --panel2:#151d2e; --border:rgba(255,255,255,.09);
   --fg:#dde3f0; --muted:#6b7898;
-  --route:#f59e0b;
+  
 }
 body.light-map {
   --panel:#f0f2f8; --panel2:#e4e7f0; --border:rgba(0,0,0,.1);
@@ -48,6 +49,7 @@ html,body{width:100%;height:100%;overflow:hidden;
 .msb.active{background:var(--ake1);border-color:var(--ake1);color:#fff;}
 #hts{font-family:'JetBrains Mono',monospace;font-size:10px;
   color:rgba(255,255,255,.5);min-width:72px;text-align:right;}
+
 
 #dbar{position:fixed;top:52px;left:0;right:0;height:37px;z-index:1100;
   background:var(--ake3);border-bottom:1px solid rgba(255,255,255,.07);
@@ -202,20 +204,19 @@ html,body{width:100%;height:100%;overflow:hidden;
     <div class="h-sep"></div>
     <div>
       <div class="h-title">KSA &amp; Kuwait — Iranian Strike Intelligence</div>
-      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 08 Mar 2026</div>
+      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 12 Mar 2026</div>
     </div>
   </div>
   <div class="h-right">
-    <div class="stat-chip"><span class="sc-val g" id="tot-int">—</span><span class="sc-lbl">Intercept %</span></div>
-    <div class="stat-chip"><span class="sc-val r" id="tot-struck">—</span><span class="sc-lbl">Total Hits</span></div>
-    <div class="stat-chip"><span class="sc-val r" id="tot-ksa-hits">—</span><span class="sc-lbl">KSA Hits</span></div>
-    <div class="stat-chip"><span class="sc-val r" id="tot-kw-hits">—</span><span class="sc-lbl">Kuwait Hits</span></div>
     <div style="display:flex;gap:3px;">
       <button class="msb" id="msb-light"  onclick="setStyle('light')">&#9728; Light</button>
       <button class="msb" id="msb-dark" onclick="setStyle('dark')">&#127761; Dark</button>
       <button class="msb active" id="msb-street" onclick="setStyle('street')">&#128506; Street</button>
+      
+      
     </div>
     <span id="hts"></span>
+
   </div>
 </div>
 
@@ -287,8 +288,7 @@ html,body{width:100%;height:100%;overflow:hidden;
     </svg></div>
     <div><div class="leg-lbl">Debris</div><div class="leg-sub">Interception fragments</div></div>
   </div>
-    <div><div class="leg-lbl">Evac Route</div><div class="leg-sub">Kuwait City → ELQ</div></div>
-  </div>
+
 </div>
 
 <div id="sbar">
@@ -304,6 +304,7 @@ html,body{width:100%;height:100%;overflow:hidden;
 </div>
 
 <script>
+
 const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:20});
 const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
@@ -321,10 +322,10 @@ let activeDay = 'all', typeFilter = 'all', countryFilter = 'all', activeId = nul
 function setStyle(s) {
   [cartoLight,cartoDark,osmStreet].forEach(l=>{if(map.hasLayer(l))map.removeLayer(l);});
   if(s==='light')  {cartoLight.addTo(map); document.body.className='light-map';}
-  if(s==='dark')   {osmStreet.addTo(map);  document.body.className='dark-map';}
+  if(s==='dark')   {cartoDark.addTo(map);  document.body.className='dark-map';}
   if(s==='street') {osmStreet.addTo(map);  document.body.className='dark-map';}
-  document.querySelectorAll('.msb').forEach(b=>b.classList.remove('active'));
-  const btn=document.getElementById('msb-'+s); if(btn) btn.classList.add('active');
+  document.querySelectorAll('.msb[id^="msb-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('msb-'+s)?.classList.add('active');
 }
 
 const DAYS = [
@@ -338,9 +339,13 @@ const DAYS = [
   { k:'06mar', l:'06 Mar' },
   { k:'07mar', l:'07 Mar' },
   { k:'08mar', l:'08 Mar' },
+  { k:'09mar', l:'09 Mar' },
+  { k:'10mar', l:'10 Mar' },
+  { k:'11mar', l:'11 Mar' },
+  { k:'12mar', l:'12 Mar' },
 ];
 const DAILY = {
-  all:    { label:'All Days (28 Feb–08 Mar)', ml:96, dl:282, mi:92, di:265, ms:4, ds:19, inc:41 },
+  all:    { label:'All Days (28 Feb–12 Mar)*', ml:132, dl:341, mi:126, di:319, ms:6, ds:28, inc:58 },
   '28feb':{ label:'28 Feb', ml:45, dl:27,  mi:45, di:22,  ms:0, ds:5,  inc:7  },
   '01mar':{ label:'01 Mar', ml:18, dl:55,  mi:18, di:52,  ms:0, ds:3,  inc:4  },
   '02mar':{ label:'02 Mar', ml:22, dl:65,  mi:20, di:60,  ms:2, ds:3,  inc:6  },
@@ -350,10 +355,230 @@ const DAILY = {
   '06mar':{ label:'06 Mar', ml:10, dl:22,  mi:10, di:21,  ms:0, ds:1,  inc:3  },
   '07mar':{ label:'07 Mar', ml:12, dl:47,  mi:12, di:47,  ms:0, ds:0,  inc:4  },
   '08mar':{ label:'08 Mar', ml:1,  dl:39,  mi:0,  di:37,  ms:1, ds:3,  inc:6  },
+  '09mar':{ label:'09 Mar', ml:7,  dl:4,   mi:6,  di:3,   ms:1, ds:2,  inc:4  },
+  // 10 Mar: KSA — 1 BM (Eastern Region) + 4 drones (2 near Al-Kharj, 2 at Shaybah). Kuwait — 6 drones + Sabiya fire.
+  '10mar':{ label:'10 Mar', ml:1,  dl:10,  mi:1,  di:10,  ms:0, ds:1,  inc:4  },
+  // 11 Mar (Wednesday): KSA — 6 BM at Prince Sultan + 6 drones Shaybah + 2 drones Eastern Province. Kuwait — 6 drones.
+  '11mar':{ label:'11 Mar', ml:6,  dl:14,  mi:6,  di:12,  ms:0, ds:0,  inc:4  },
+  // 12 Mar (Wednesday early): KSA — 5 drones Shaybah + 2 drones Eastern Province. Kuwait — 8 drones + IRGC claims 2 missiles Camp Arifjan.
+  '12mar':{ label:'12 Mar*',ml:2,  dl:19,  mi:0,  di:16,  ms:0, ds:3,  inc:4  },
 };
 const INCIDENTS = [
+  // ══ 12 MARCH ══════════════════════════════════════════════════════
+  // KSA MOD early Wednesday: 5 drones destroyed heading toward Shaybah + 2 more in Eastern Province.
+  // Kuwait: National Guard downed 8 drones; IRGC claimed 2 missiles targeted Camp Arifjan (unconfirmed by Kuwait).
   {
-    id:'SA8MAR_ALKHARJ', name:'Al-Kharj Residential Strike — 2 Killed', area:'Al-Kharj, Riyadh Province', emirate:'Saudi Arabia',
+    id:'SA12MAR_SHAYBAH', name:'Shaybah Oil Field — 7 Drones Intercepted', area:'Empty Quarter, Eastern Province', emirate:'Saudi Arabia',
+    lat:22.5150, lon:53.9200, type:'drone', day:'12mar', time:'Early hours AST',
+    status:'Intercepted — all destroyed', sc:'g', weapon:'Iranian drones ×7 (Shahed-type)', cas:'None', dmg:'None — all destroyed before reaching target', rate:'100%',
+    strikes:0, mwave:0, dwave:7, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Ministry of Defence confirmed on 12 March that seven drones heading toward the Shaybah oil field in the Empty Quarter had been intercepted and destroyed — the 4th targeting of Shaybah in the campaign. Al Jazeera and AP both reported the Saudi MOD statement. The super-giant field produces approximately 1 million barrels of Arabian Extra Light crude per day. All seven drones were destroyed before reaching their target.',
+    news:[
+      {dot:'g',text:'Saudi MOD: seven drones heading toward Shaybah oilfield intercepted and destroyed. 4th targeting of Shaybah in the campaign.',time:'12 Mar · Saudi MOD / Al Jazeera / AP'},
+      {dot:'b',text:'IRGC claims 37th wave of attacks across Gulf region, including targets in Kuwait and Saudi Arabia.',time:'12 Mar · IRGC / Al Jazeera'},
+    ],
+    links:[
+      {label:'AP / US News — Saudi MOD 12 Mar', url:'https://www.usnews.com/news/best-states/washington/articles/2026-03-10/the-latest-iran-launches-drones-at-saudi-arabia-and-kuwait-as-us-president-sends-mixed-messages'},
+      {label:'Al Jazeera — Day 12 Gulf attacks', url:'https://www.aljazeera.com/news/2026/3/11/iran-fires-missiles-drones-at-gulf-nations-as-ship-hit-in-strait-of-hormuz'},
+    ]
+  },
+  {
+    id:'SA12MAR_EMBASSY', name:'Riyadh Embassies District — Drones Intercepted', area:'Diplomatic Quarter, Riyadh', emirate:'Saudi Arabia',
+    lat:24.6900, lon:46.6200, type:'drone', day:'12mar', time:'Early hours AST',
+    status:'Intercepted — destroyed', sc:'g', weapon:'Iranian drones (multiple, count unconfirmed)', cas:'None', dmg:'None', rate:'100%',
+    strikes:0, mwave:0, dwave:1, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Ministry of Defence confirmed on 12 March that it had intercepted drones heading toward the embassies district in Riyadh. The Diplomatic Quarter had been targeted previously on 3 March (when the US Embassy was struck and the CIA station was hit) and on 9 March. All drones were intercepted and destroyed before reaching their targets. Al Jazeera reported the Saudi MOD statement alongside the Shaybah and Eastern Province intercepts as part of a sustained 37th-wave Iranian attack package.',
+    news:[
+      {dot:'g',text:'Saudi MOD confirms drones heading toward Riyadh embassies district intercepted and destroyed.',time:'12 Mar · Saudi MOD / Al Jazeera'},
+      {dot:'b',text:'US Embassy Riyadh was previously struck on 3 Mar; CIA station also damaged in that attack.',time:'Ref: 3 Mar · Washington Post'},
+    ],
+    links:[
+      {label:'Al Jazeera — Iran targets Gulf 12 Mar', url:'https://www.aljazeera.com/news/2026/3/12/iran-targets-gulf-nations-with-missiles-drones-as-oil-prices-soar'},
+    ]
+  },
+  {
+    id:'SA12MAR_EASTERN', name:'Eastern Province — 2 Drones Intercepted', area:'Eastern Province, Saudi Arabia', emirate:'Saudi Arabia',
+    lat:26.4207, lon:50.0888, type:'drone', day:'12mar', time:'Early hours AST',
+    status:'Intercepted — destroyed', sc:'g', weapon:'Iranian drones ×2', cas:'None', dmg:'None', rate:'100%',
+    strikes:0, mwave:0, dwave:2, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Defence Ministry confirmed the interception and destruction of two drones in the Eastern Province on early Wednesday 12 March. The Eastern Province houses the majority of Saudi Arabia\'s critical oil infrastructure, including the Ras Tanura refinery, Abqaiq processing facility, and ARAMCO headquarters. This was the latest in a sustained campaign of drone targeting of Saudi energy and military assets in the region since 28 February.',
+    news:[
+      {dot:'g',text:'Saudi MOD: two drones in Eastern Province intercepted and destroyed.',time:'12 Mar · Saudi MOD / AP'},
+    ],
+    links:[
+      {label:'AP / US News — Saudi MOD 12 Mar', url:'https://www.usnews.com/news/best-states/washington/articles/2026-03-10/the-latest-iran-launches-drones-at-saudi-arabia-and-kuwait-as-us-president-sends-mixed-messages'},
+    ]
+  },
+  {
+    id:'KW12MAR_DRONES', name:'Kuwait — Drone Hits Residential Building (2 Wounded); 8 Drones Downed', area:'Kuwait (multiple locations)', emirate:'Kuwait',
+    lat:29.3759, lon:47.9774, type:'mixed', day:'12mar', time:'Early hours AST',
+    status:'Drone fell on residential building; 8 drones downed', sc:'r', weapon:'Iranian drones (8 intercepted; 1+ fell on residential building)', cas:'2 wounded (nationalities not confirmed)', dmg:'Residential building hit; material damage. 6 power transmission lines cut by drone debris — electricity ministry confirmed supply unaffected.', rate:'—',
+    strikes:1, mwave:0, dwave:9, mstruck:0, dstruck:1,
+    desc:'Kuwait reported a confirmed drone strike on a residential building on 12 March, wounding two people and causing material damage. The Kuwait Defence Ministry confirmed the attack, which also resulted in six power transmission lines going out of service after drone debris fell on them — the electricity ministry stated the overall electricity and water situation remained under control. Kuwait\'s National Guard separately announced it had downed eight drones. Al Jazeera\'s Mohammed Jamjoom reporting from Doha confirmed the Kuwait residential building strike and power line damage. The IRGC claimed to have fired two missiles at Camp Arifjan; Kuwaiti authorities did not confirm the missile claims.',
+    news:[
+      {dot:'r',text:'Drone hits residential building in Kuwait; two people wounded, material damage confirmed.',time:'12 Mar · Kuwait Defence Ministry / Al Jazeera'},
+      {dot:'r',text:'Six power transmission lines cut after drone debris falls on them. Electricity ministry: supply situation under control.',time:'12 Mar · Kuwait Electricity Ministry / Al Jazeera'},
+      {dot:'g',text:'Kuwait National Guard: eight drones targeting Kuwait downed and destroyed.',time:'12 Mar · Kuwait National Guard'},
+      {dot:'r',text:'IRGC claims two missiles fired at Camp Arifjan. Kuwaiti authorities did not confirm.',time:'12 Mar · IRGC / Al Jazeera'},
+      {dot:'b',text:'UN Security Council to vote on GCC resolution demanding Iran halt attacks on Arab neighbours.',time:'12 Mar · UNSC / Al Jazeera'},
+    ],
+    links:[
+      {label:'Al Jazeera — Day 12 Gulf attacks', url:'https://www.aljazeera.com/news/2026/3/11/iran-fires-missiles-drones-at-gulf-nations-as-ship-hit-in-strait-of-hormuz'},
+    ]
+  },
+  // ══ 11 MARCH (Wednesday) ══════════════════════════════════════════
+  // KSA MOD: 6 BM intercepted targeting Prince Sultan Air Base + 6 drones heading to Shaybah + 2 drones Eastern Province.
+  // Kuwait: 6 drones intercepted (AJ Day 11 / Gulf News).
+  {
+    id:'SA11MAR_PRINCE_SULTAN', name:'Prince Sultan Air Base — 6 Ballistic Missiles Intercepted', area:'Al-Kharj, Riyadh Region', emirate:'Saudi Arabia',
+    lat:24.0627, lon:47.5804, type:'missile', day:'11mar', time:'~03:00 AST',
+    status:'Intercepted — all destroyed', sc:'g', weapon:'Iranian ballistic missiles ×6', cas:'None', dmg:'None confirmed', rate:'100%',
+    strikes:0, mwave:6, dwave:0, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Ministry of Defence confirmed that six ballistic missiles launched toward Prince Sultan Air Base in Al-Kharj — the kingdom\'s most strategically important air base, housing RSAF advanced fighter squadrons and US forces — were intercepted and destroyed. Prince Sultan Air Base had been targeted repeatedly across the campaign since 28 February. The Saudi MOD spokesperson Major General Turki Al-Maliki confirmed the successful interceptions. This represented one of the heaviest single-day ballistic missile volleys against a single Saudi target since the war began.',
+    news:[
+      {dot:'g',text:'Saudi MOD spokesperson: six ballistic missiles launched toward Prince Sultan Air Base intercepted and destroyed.',time:'11 Mar · Saudi Press Agency / SPA'},
+      {dot:'b',text:'Prince Sultan Air Base hosts US forces; has been targeted repeatedly since 28 Feb.',time:'11 Mar · Gulf News Day 11'},
+    ],
+    links:[
+      {label:'Gulf News — Day 11 (KSA section)', url:'https://gulfnews.com/uae/usisrael-war-on-iran-day-11-trump-says-us-will-hit-iran-20-times-harder-gulf-states-face-new-attacks-1.500469177'},
+      {label:'Saudi Press Agency (SPA)', url:'https://www.spa.gov.sa/'},
+    ]
+  },
+  {
+    id:'SA11MAR_SHAYBAH', name:'Shaybah Oil Field — 6 Drones Intercepted', area:'Empty Quarter, Eastern Province', emirate:'Saudi Arabia',
+    lat:22.5150, lon:53.9200, type:'drone', day:'11mar', time:'~04:00 AST',
+    status:'Intercepted — all destroyed', sc:'g', weapon:'Iranian drones ×6 (Shahed-type)', cas:'None', dmg:'None', rate:'100%',
+    strikes:0, mwave:0, dwave:6, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Defence Ministry confirmed the interception of six drones heading toward the Shaybah oil field in the Empty Quarter. Shaybah had been previously targeted on 7 March (16 drones in four waves, all intercepted) and 8 March. The super-giant field produces approximately 1 million barrels per day of Arabian Extra Light crude and feeds the kingdom\'s petrochemical sector. All six drones were destroyed before reaching their target. The combined Shaybah and Prince Sultan attacks on 11 March indicated Iran was continuing to stretch Saudi air defences across multiple axes simultaneously.',
+    news:[
+      {dot:'g',text:'Saudi MOD: six drones targeting Shaybah oilfield intercepted and destroyed.',time:'11 Mar · Saudi MOD / SPA'},
+      {dot:'b',text:'Shaybah had already been targeted on 7 and 8 March; field\'s 1 million bpd output preserved.',time:'11 Mar · Argus Media / Arab News'},
+    ],
+    links:[
+      {label:'Gulf News — Day 11', url:'https://gulfnews.com/uae/usisrael-war-on-iran-day-11-trump-says-us-will-hit-iran-20-times-harder-gulf-states-face-new-attacks-1.500469177'},
+      {label:'House of Saud — Shaybah analysis', url:'https://houseofsaud.com/shaybah-oil-field-iran-drones-empty-quarter-saudi-defense/'},
+    ]
+  },
+  {
+    id:'KW11MAR_DRONES', name:'Kuwait — 6 Drones Intercepted', area:'Kuwait', emirate:'Kuwait',
+    lat:29.3759, lon:47.9774, type:'drone', day:'11mar', time:'During attack wave',
+    status:'Intercepted — all destroyed', sc:'g', weapon:'Iranian drones ×6', cas:'None', dmg:'None', rate:'100%',
+    strikes:0, mwave:0, dwave:6, mstruck:0, dstruck:0,
+    desc:'Kuwaiti authorities intercepted six drones targeting the country on Tuesday 11 March. Al Jazeera\'s Day 11 report confirmed the six interceptions. Kuwait\'s airspace had remained closed to civilian traffic since the opening days of the campaign. Saudi Arabia\'s Ministry of Foreign Affairs warned on Monday 10 March that continued Iranian attacks would lead to further escalation and have a "serious impact" on bilateral relations.',
+    news:[
+      {dot:'g',text:'Kuwait: six drones intercepted targeting the country.',time:'11 Mar · AJ Day 11 / Gulf News'},
+    ],
+    links:[
+      {label:'Al Jazeera — Day 11', url:'https://www.aljazeera.com/news/2026/3/10/iran-war-what-is-happening-on-day-11-of-us-israel-attacks'},
+    ]
+  },
+  // ══ 10 MARCH ══════════════════════════════════════════════════════
+  // KSA MOD: 1 BM targeting Eastern Region intercepted + 2 drones east of Al-Kharj destroyed. Alma Research confirms.
+  // Kuwait: 6 drones intercepted (National Guard). Sabiya power plant fire from drone debris.
+  {
+    id:'SA10MAR_EASTERN_BM', name:'Eastern Region — Ballistic Missile Intercepted', area:'Eastern Province, Saudi Arabia', emirate:'Saudi Arabia',
+    lat:26.4207, lon:50.0888, type:'missile', day:'10mar', time:'~02:00 AST',
+    status:'Intercepted — destroyed', sc:'g', weapon:'Iranian ballistic missile ×1', cas:'None', dmg:'None', rate:'100%',
+    strikes:0, mwave:1, dwave:0, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Ministry of Defence confirmed that its air defence systems intercepted a ballistic missile targeting the Kingdom\'s Eastern Region. The Eastern Province had been a repeated target throughout the campaign given its concentration of oil and gas infrastructure. Alma Research reported the interception as part of a broader 10 March attack profile that also included drone intercepts near Al-Kharj. As of 10 March, the US had struck more than 5,000 targets in Iran since 28 February, according to CENTCOM.',
+    news:[
+      {dot:'g',text:'Saudi MOD: air defences intercepted a ballistic missile targeting the Eastern Region.',time:'10 Mar · Saudi MOD / Gulf News Day 11'},
+      {dot:'b',text:'US CENTCOM: more than 5,000 targets struck in Iran since 28 Feb.',time:'10 Mar · CENTCOM'},
+    ],
+    links:[
+      {label:'Gulf News — Day 11 (10 Mar KSA data)', url:'https://gulfnews.com/uae/usisrael-war-on-iran-day-11-trump-says-us-will-hit-iran-20-times-harder-gulf-states-face-new-attacks-1.500469177'},
+      {label:'Alma Research — 10 Mar daily report', url:'https://israel-alma.org/daily-report-the-second-iran-war-march-10-2026-1800/'},
+    ]
+  },
+  {
+    id:'SA10MAR_ALKHARJ_DRONES', name:'Al-Kharj — 2 Drones Destroyed East of Governorate', area:'Al-Kharj Governorate, Riyadh Region', emirate:'Saudi Arabia',
+    lat:24.1552, lon:47.6000, type:'drone', day:'10mar', time:'~02:30 AST',
+    status:'Intercepted — destroyed', sc:'g', weapon:'Iranian drones ×2', cas:'None', dmg:'None', rate:'100%',
+    strikes:0, mwave:0, dwave:2, mstruck:0, dstruck:0,
+    desc:'Saudi Arabia\'s Ministry of Defence announced the destruction of two drones east of Al-Kharj Governorate. Al-Kharj had been a focal point of Iranian attacks across the campaign due to the presence of Prince Sultan Air Base and its residential surroundings. An Iranian drone strike on 9 March had struck a residential building in the Al-Kharj area killing two people (Indian and Bangladeshi nationals). The two intercepts on 10 March demonstrated continued targeting of the area. Alma Research confirmed the intercepts as part of the broader 10 March attack profile.',
+    news:[
+      {dot:'g',text:'Saudi MOD: two drones destroyed east of Al-Kharj Governorate.',time:'10 Mar · Saudi MOD / Alma Research'},
+    ],
+    links:[
+      {label:'Alma Research — 10 Mar daily report', url:'https://israel-alma.org/daily-report-the-second-iran-war-march-10-2026-1800/'},
+      {label:'Gulf News — Day 11', url:'https://gulfnews.com/uae/usisrael-war-on-iran-day-11-trump-says-us-will-hit-iran-20-times-harder-gulf-states-face-new-attacks-1.500469177'},
+    ]
+  },
+  {
+    id:'KW10MAR_DRONES', name:'Kuwait — 6 Drones Intercepted', area:'Kuwait', emirate:'Kuwait',
+    lat:29.3759, lon:47.9774, type:'drone', day:'10mar', time:'During attack wave',
+    status:'Intercepted — all destroyed', sc:'g', weapon:'Iranian drones ×6', cas:'None confirmed', dmg:'None confirmed', rate:'100%',
+    strikes:0, mwave:0, dwave:6, mstruck:0, dstruck:0,
+    desc:'Kuwait\'s National Guard announced the interception of six drones targeting the country on 10 March. The Long War Journal confirmed the interception. LWJ also reported that debris from an intercepted drone ignited a fire at the Sabiya Thermal Power Plant in Shumaymah, Kuwait, though authorities did not report major disruptions to power supply. Kuwait\'s National Guard had been playing an increasingly prominent role in drone defence following the heavy attacks on Camp Arifjan and other installations earlier in the campaign.',
+    news:[
+      {dot:'g',text:'Kuwait National Guard: six drones intercepted.',time:'10 Mar · Kuwait National Guard / LWJ'},
+      {dot:'a',text:'Debris from intercepted drone ignites fire at Sabiya Thermal Power Plant, Shumaymah. No major disruptions.',time:'10 Mar · LWJ / Kuwait Civil Defence'},
+    ],
+    links:[
+      {label:'Long War Journal — 9-10 Mar update', url:'https://www.longwarjournal.org/archives/2026/03/iranian-drone-and-missile-barrages-strike-arab-states-across-the-region-march-9-10-updates.php'},
+    ]
+  },
+  {
+    id:'KW10MAR_SABIYA', name:'Sabiya Thermal Power Plant — Fire from Drone Debris', area:'Shumaymah, Al Jahra Governorate, Kuwait', emirate:'Kuwait',
+    lat:29.6500, lon:47.7200, type:'debris', day:'10mar', time:'During attack wave',
+    status:'Debris fire — no major disruption', sc:'p', weapon:'Interception debris', cas:'None confirmed', dmg:'Fire at Sabiya power plant from drone interception debris; plant not significantly disrupted', rate:'—',
+    strikes:1, mwave:0, dwave:0, mstruck:0, dstruck:1,
+    desc:'Debris from an intercepted Iranian drone ignited a fire at the Sabiya Thermal Power Plant in Shumaymah, in Kuwait\'s Al Jahra Governorate. Authorities confirmed there was no major disruption to power supply. Sabiya is one of Kuwait\'s key power generation facilities, with a capacity of several thousand megawatts. The incident reflected a pattern seen across the Gulf whereby even successfully intercepted drones cause fires and damage through falling debris. Kuwaiti authorities urged the public to remain calm and rely on official sources.',
+    news:[
+      {dot:'a',text:'Debris from intercepted drone ignites fire at Sabiya Thermal Power Plant, Shumaymah.',time:'10 Mar · LWJ / Kuwait Civil Defence'},
+      {dot:'b',text:'Authorities: no major disruptions to power supply. Fire contained.',time:'10 Mar · Kuwait MOI'},
+    ],
+    links:[
+      {label:'Long War Journal — 9-10 Mar update', url:'https://www.longwarjournal.org/archives/2026/03/iranian-drone-and-missile-barrages-strike-arab-states-across-the-region-march-9-10-updates.php'},
+    ]
+  },
+  // ══ 09 MARCH ══════════════════════════════════════════════════════
+  {
+    id:'SA9MAR_RIYADH_DQ2', name:'Riyadh Diplomatic Quarter — Drone Attack Foiled', area:'Diplomatic Quarter, Riyadh', emirate:'Saudi Arabia',
+    lat:24.6900, lon:46.6200, type:'drone', day:'09mar', time:'~02:00 AST',
+    status:'Intercepted', sc:'g', weapon:'Shahed-type drone', cas:'None', dmg:'None',
+    rate:'N/A', strikes:3, mwave:0, dwave:3, mstruck:0, dstruck:0,
+    desc:'Saudi authorities announced the interception of a drone attack targeting the Riyadh Diplomatic Quarter. All drones were destroyed before reaching the compound. The GCC condemned the continued Iranian attacks on Bahrain and Kuwait as "dangerous acts of aggression".',
+    news:[
+      {dot:'g',text:'Saudi MOD: drone attack on Diplomatic Quarter foiled, all threats intercepted.',time:'09 Mar · 02:45'},
+      {dot:'b',text:'GCC condemns continued Iranian attacks as "dangerous acts of aggression".',time:'09 Mar · 09:00'},
+    ], links:[]
+  },
+  {
+    id:'SA9MAR_PSB', name:'Prince Sultan Air Base — Missile Attack', area:'Al-Kharj, Riyadh Province', emirate:'Saudi Arabia',
+    lat:24.0627, lon:47.5804, type:'missile', day:'09mar', time:'~03:30 AST',
+    status:'Partially struck', sc:'a', weapon:'Ballistic missile', cas:'1 US soldier wounded (stable)', dmg:'Minor structural damage',
+    rate:'50%', strikes:2, mwave:2, dwave:0, mstruck:1, dstruck:0,
+    desc:'Prince Sultan Air Base came under ballistic missile attack. One missile was intercepted, one impacted the base perimeter causing minor structural damage. CENTCOM confirmed one US soldier was wounded and is in stable condition — the first confirmed coalition casualty at PSB.',
+    news:[
+      {dot:'r',text:'2 ballistic missiles launched at Prince Sultan Air Base.',time:'09 Mar · 03:30'},
+      {dot:'a',text:'CENTCOM: 1 missile intercepted, 1 impacted base perimeter. 1 US soldier wounded, stable.',time:'09 Mar · 06:00'},
+    ], links:[]
+  },
+  {
+    id:'KW9MAR_AIRPORT2', name:'Kuwait Airport — Renewed Drone Wave', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.2269, lon:47.9689, type:'drone', day:'09mar', time:'~04:30 AST',
+    status:'Intercepted', sc:'g', weapon:'Shahed-type drones', cas:'None', dmg:'None',
+    rate:'N/A', strikes:4, mwave:0, dwave:4, mstruck:0, dstruck:0,
+    desc:'Kuwait International Airport came under a renewed drone wave on day 10 of the conflict. All four drones were intercepted by Kuwaiti air defences. Airport operations remained suspended for civilian traffic following earlier damage.',
+    news:[
+      {dot:'r',text:'4 drones detected inbound toward Kuwait International Airport.',time:'09 Mar · 04:30'},
+      {dot:'g',text:'Kuwait MOD: all four drones intercepted. Airport remains closed to civilian traffic.',time:'09 Mar · 05:15'},
+    ], links:[]
+  },
+  {
+    id:'KW9MAR_PIFSS2', name:'Kuwait City — Renewed Urban Drone Salvo', area:'Kuwait City', emirate:'Kuwait',
+    lat:29.3693, lon:47.9783, type:'drone', day:'09mar', time:'~05:00 AST',
+    status:'Debris impact', sc:'a', weapon:'Shahed-type drones / interception debris', cas:'2 civilians injured', dmg:'Vehicle and road damage',
+    rate:'N/A', strikes:1, mwave:0, dwave:1, mstruck:0, dstruck:1,
+    desc:'Interception debris from a drone destroyed over central Kuwait City fell onto a residential street, injuring two civilians. Kuwait Interior Ministry urged residents to remain indoors during any air defence activation.',
+    news:[
+      {dot:'a',text:'Interception debris injures 2 civilians in central Kuwait City.',time:'09 Mar · 05:20'},
+      {dot:'b',text:'Kuwait Interior Ministry urges residents to shelter indoors during air defence activations.',time:'09 Mar · 06:00'},
+    ], links:[]
+  },
+  {
+    id:'SA8MAR_ALKHARJ', name:'Al-Kharj — Residential Strike', area:'Al-Kharj, Riyadh Province', emirate:'Saudi Arabia',
     lat:24.1552, lon:47.3084, type:'missile', day:'08mar', time:'~04:30 AST',
     status:'STRUCK — 2 KIA, 12 WIA', sc:'r', strikes:1,
     weapon:'Iranian ballistic missile (military projectile)', cas:'2 killed (Indian, Bangladeshi nationals); 12 injured', dmg:'Residential building destroyed; multi-storey damage', rate:'—',
@@ -1102,7 +1327,7 @@ function mkPopup(inc) {
 ${linksHtml}
 <div class="pu-foot">
   <span>${inc.lat.toFixed(4)}°N ${inc.lon.toFixed(4)}°E · ${inc.emirate}</span>
-  <span>AKE International · 07 Mar 2026</span>
+  <span>AKE International · 12 Mar 2026</span>
 </div>
 </div>`;
 }
@@ -1196,6 +1421,7 @@ function tick() {
   if (el) el.textContent = ts;
 }
 
+
 buildDayTabs();
 buildMarkers();
 buildList();
@@ -1203,6 +1429,8 @@ updateStats();
 setInterval(tick, 1000);
 tick();
 map.fitBounds([[21.5,35.5],[32.5,57.0]], {padding:[22,22]});
+
+
 </script>
 </body>
 </html>
