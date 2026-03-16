@@ -6,9 +6,9 @@
 <title>KSA &amp; Kuwait — Iranian Strike Intelligence · AKE International</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <!-- build:1773284009 -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root {
   --ake1:#00549f; --ake2:#0a2d52; --ake3:#0d1640;
@@ -204,7 +204,7 @@ html,body{width:100%;height:100%;overflow:hidden;
     <div class="h-sep"></div>
     <div>
       <div class="h-title">KSA &amp; Kuwait — Iranian Strike Intelligence</div>
-      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 12 Mar 2026</div>
+      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 16 Mar 2026</div>
     </div>
   </div>
   <div class="h-right">
@@ -343,9 +343,13 @@ const DAYS = [
   { k:'10mar', l:'10 Mar' },
   { k:'11mar', l:'11 Mar' },
   { k:'12mar', l:'12 Mar' },
+  { k:'13mar', l:'13 Mar' },
+  { k:'14mar', l:'14 Mar' },
+  { k:'15mar', l:'15 Mar' },
+  { k:'16mar', l:'16 Mar' },
 ];
 const DAILY = {
-  all:    { label:'All Days (28 Feb–12 Mar)*', ml:132, dl:341, mi:126, di:319, ms:6, ds:28, inc:58 },
+  all:    { label:'All Days (28 Feb–16 Mar)*', ml:144, dl:422, mi:140, di:400, ms:6, ds:29, inc:62, minOnly:true, frozenRate:95  },
   '28feb':{ label:'28 Feb', ml:45, dl:27,  mi:45, di:22,  ms:0, ds:5,  inc:7  },
   '01mar':{ label:'01 Mar', ml:18, dl:55,  mi:18, di:52,  ms:0, ds:3,  inc:4  },
   '02mar':{ label:'02 Mar', ml:22, dl:65,  mi:20, di:60,  ms:2, ds:3,  inc:6  },
@@ -361,9 +365,101 @@ const DAILY = {
   // 11 Mar (Wednesday): KSA — 6 BM at Prince Sultan + 6 drones Shaybah + 2 drones Eastern Province. Kuwait — 6 drones.
   '11mar':{ label:'11 Mar', ml:6,  dl:14,  mi:6,  di:12,  ms:0, ds:0,  inc:4  },
   // 12 Mar (Wednesday early): KSA — 5 drones Shaybah + 2 drones Eastern Province. Kuwait — 8 drones + IRGC claims 2 missiles Camp Arifjan.
-  '12mar':{ label:'12 Mar*',ml:2,  dl:19,  mi:0,  di:16,  ms:0, ds:3,  inc:4  },
+  '12mar':{ label:'12 Mar', ml:2,  dl:19,  mi:2,  di:16,  ms:0, ds:3,  inc:4, minOnly:true  },
+  '13mar':{ label:'13 Mar', ml:null, dl:51,  mi:null, di:51,  ms:0, ds:1, inc:1, minOnly:true  },
+  '14mar':{ label:'14 Mar', ml:6,    dl:null,mi:6,    di:null,ms:0, ds:0, inc:3, minOnly:true  },
+  '15mar':{ label:'15 Mar', ml:6,    dl:30,  mi:6,    di:30,  ms:0, ds:0, inc:0, minOnly:true  },
+  '16mar':{ label:'16 Mar*',ml:null, dl:null,mi:null, di:null,ms:0, ds:0, inc:0, minOnly:true  },
 };
 const INCIDENTS = [
+  // ══ 14 MARCH (Saturday) ══════════════════════════════════════════
+  // Saudi MOD: 6 BM intercepted over al-Kharj governorate. Multiple drones Riyadh/Eastern Province.
+  // Kuwait: 2 drones struck Ahmed al-Jaber Air Base (3 soldiers lightly injured); several drones
+  // struck Kuwait International Airport radar system (no injuries, material damage).
+  {
+    id:'SA14MAR_ALKHARJ_BM', day:'14mar', emirate:'Saudi Arabia', sc:'g', type:'missile',
+    lat:24.1500, lon:47.5100,
+    name:'Al-Kharj Governorate — 6 Ballistic Missiles Intercepted',
+    area:'Al-Kharj / Prince Sultan Air Base, Riyadh Region',
+    time:'Daytime AST · 14 Mar',
+    status:'All intercepted — no casualties', strikes:0,
+    weapon:'Iranian ballistic missiles ×6', cas:'None', dmg:'All six intercepted and destroyed before reaching targets. Prince Sultan Air Base in Al-Kharj, which hosts US forces, is the presumed target.', rate:'100%',
+    mwave:6, mstruck:0, dwave:0, dstruck:0,
+    desc:'Saudi Arabia\'s Ministry of Defence confirmed on Saturday 14 March that six ballistic missiles launched towards the Al-Kharj governorate were intercepted and destroyed. The area is home to Prince Sultan Air Base, a key hub for US military operations during the war. The Saudi MOD separately reported intercepting drones over Riyadh and Eastern Province. No casualties were reported. Iranian missile and drone attacks on Al-Kharj have been sustained throughout the war, with the area having absorbed multiple waves targeting PSAB.',
+    news:[
+      {dot:'g', text:'Saudi MOD: six ballistic missiles launched toward Al-Kharj governorate intercepted and destroyed.', time:'14 Mar · Saudi MOD (@modgovksa) / Al Jazeera'},
+    ],
+    links:[
+      {label:'Al Jazeera — Iran continues intensified attacks 14 Mar', url:'https://www.aljazeera.com/news/2026/3/14/iran-continues-intensified-attacks-across-gulf-in-us-israel-war-fallout'},
+      {label:'Al Jazeera — Day 16 explainer (14 Mar attacks)', url:'https://www.aljazeera.com/news/2026/3/15/iran-war-what-is-happening-on-day-16-of-us-israel-attacks'},
+    ],
+  },
+  {
+    id:'KW14MAR_AHMEDJABER', day:'14mar', emirate:'Kuwait', sc:'r', type:'drone',
+    lat:28.9347, lon:47.7858,
+    name:'Ahmed al-Jaber Air Base — 2 Drones Strike Base, 3 Soldiers Injured',
+    area:'Ahmad al-Jaber Air Base, southern Kuwait',
+    time:'Daytime AST · 14 Mar',
+    status:'STRUCK — 3 soldiers lightly injured', strikes:1,
+    weapon:'Iranian drones ×2 (of 7 detected; 3 intercepted, 2 fell outside threat zone, 2 struck)', cas:'3 Kuwaiti army personnel — minor injuries, stable condition', dmg:'Material damage in vicinity of base. Ahmed al-Jaber Air Base is located adjacent to Camp Arifjan, which hosts CENTCOM forward headquarters.', rate:'—',
+    mwave:0, mstruck:0, dwave:7, dstruck:2,
+    desc:'On Saturday 14 March, Kuwait\'s Ministry of Defence confirmed that two Iranian drones struck the Ahmed al-Jaber Air Base in southern Kuwait. Of seven hostile drones detected, three were intercepted and destroyed, two others fell outside the threat zone without posing danger, and two struck the base. The strike caused material damage in the vicinity of the base. Three Kuwaiti army personnel sustained minor injuries and were reported to be in stable condition. Ahmed al-Jaber Air Base sits adjacent to Camp Arifjan, which hosts the forward headquarters of US Central Command (CENTCOM) for the Middle East region. The same day, Kuwait\'s civil aviation authority confirmed that several drones struck Kuwait International Airport and hit its radar system, though no one was injured.',
+    news:[
+      {dot:'r', text:'Kuwait MOD: 7 drones detected — 3 intercepted, 2 fell outside threat zone, 2 struck Ahmed al-Jaber Air Base. Material damage. 3 soldiers minor injuries, stable.', time:'14 Mar · Kuwait MOD / Al Jazeera'},
+    ],
+    links:[
+      {label:'Al Jazeera — Iran continues intensified attacks 14 Mar', url:'https://www.aljazeera.com/news/2026/3/14/iran-continues-intensified-attacks-across-gulf-in-us-israel-war-fallout'},
+      {label:'ABC7 — Two drones targeted Ahmed al-Jaber 14 Mar', url:'https://abc7.com/live-updates/iran-war-news-live-updates-mojtaba-khamenei-chosen-irans-supreme-leader/18696218/entry/18718356/'},
+    ],
+  },
+  {
+    id:'KW14MAR_AIRPORT', day:'14mar', emirate:'Kuwait', sc:'r', type:'drone',
+    lat:29.2266, lon:47.9689,
+    name:'Kuwait International Airport — Drones Strike Radar System',
+    area:'Kuwait International Airport, Kuwait City',
+    time:'Evening AST · 14 Mar',
+    status:'STRUCK — radar system hit, no injuries', strikes:1,
+    weapon:'Iranian drones (multiple)', cas:'None — no injuries', dmg:'Several drones struck airport facilities and hit the radar system. Material damage to radar infrastructure. No casualties reported.', rate:'—',
+    mwave:0, mstruck:0, dwave:null, dstruck:1,
+    desc:'On Saturday evening 14 March, Kuwait\'s civil aviation authority confirmed that several Iranian drones struck Kuwait International Airport and hit its radar system. No injuries were reported. The damage was limited to material, primarily to the airport\'s radar infrastructure. The incident was the second confirmed drone attack on Kuwait International Airport during the campaign. An earlier attack on 12 March had also targeted the airport.',
+    news:[
+      {dot:'r', text:'Kuwait Civil Aviation Authority: several drones struck Kuwait International Airport and hit radar system. No casualties. Material damage.', time:'14 Mar · Kuwait CAA / Al Jazeera'},
+    ],
+    links:[
+      {label:'Al Jazeera — Iran continues intensified attacks 14 Mar', url:'https://www.aljazeera.com/news/2026/3/14/iran-continues-intensified-attacks-across-gulf-in-us-israel-war-fallout'},
+      {label:'CNN — Day 15 round-up (Kuwait airport 14 Mar)', url:'https://www.cnn.com/world/live-news/iran-war-us-israel-trump-03-14-26'},
+    ],
+  },
+
+  // ══ 13 MARCH (Friday) ═════════════════════════════════════════════
+  // Saudi Arabia: 51+ drones intercepted — largest single-day drone intercept to date.
+  // Eastern Province, Riyadh area, al-Kharj, Shaybah Empty Quarter all targeted.
+  // KEY: Iranian missile strike at Prince Sultan Air Base (PSAB) on 13 Mar confirmed by WSJ —
+  // 5 US KC-135 Stratotanker aircraft damaged on ground. No US personnel killed.
+  // Kuwait: additional attacks reported (mainly continuation of 12 Mar activity).
+  {
+    id:'SA13MAR_PSAB_KC135', day:'13mar', emirate:'Saudi Arabia', sc:'r', type:'missile',
+    lat:24.0622, lon:47.5806,
+    name:'Prince Sultan Air Base — Iranian Missiles Damage 5 US KC-135 Tankers',
+    area:'Prince Sultan Air Base (PSAB), Al-Kharj, Riyadh Region',
+    time:'13 Mar (confirmed by WSJ 14 Mar)',
+    status:'STRUCK — 5 US aircraft damaged, no personnel killed', strikes:1,
+    weapon:'Iranian ballistic missiles (type unconfirmed)', cas:'No US personnel killed. Aircraft damaged not destroyed.', dmg:'5 US Air Force KC-135 Stratotanker aerial refuelling aircraft damaged while parked on the ground at PSAB. Aircraft sustained damage but were not destroyed; repair underway. 4 of 5 returned to service quickly; 1 required more extensive repairs. Saudi air defence had previously intercepted incoming projectiles headed for the base on 14 Mar (6 BM) but this strike from 13 Mar got through.', rate:'—',
+    mwave:null, mstruck:1, dwave:0, dstruck:0,
+    desc:'On Friday 13 March, Iranian missiles struck Prince Sultan Air Base (PSAB) in Al-Kharj, Saudi Arabia, damaging five US Air Force KC-135 Stratotanker refuelling aircraft parked on the ground. The Wall Street Journal first reported the strike on 14 March, citing two US officials. No US personnel were killed in the attack. US President Trump confirmed the strike on Truth Social, saying four of the five aircraft suffered "virtually no damage" and were already back in service, with one requiring slightly more repairs. The Pentagon declined to specify the type of Iranian munition used or the exact extent of damage. PSAB, located approximately 80km south of Riyadh, is a critical hub for US air operations during the war — hosting F-22 Raptors, KC-135 tankers, E-3 AWACS aircraft and Patriot/THAAD air defence batteries. It hosts approximately 2,700 US service members. This is the first confirmed strike to cause significant equipment damage at PSAB. The KC-135 damage brings total US tanker aircraft damaged or destroyed during Operation Epic Fury to at least 7. Separately, Saudi forces intercepted over 50 drones on 13 March — the highest single-day drone intercept total since the war began.',
+    news:[
+      {dot:'r', text:'Wall Street Journal (citing 2 US officials): Iranian missile strike at Prince Sultan Air Base damaged 5 US KC-135 Stratotanker aircraft on ground. No personnel killed. Aircraft being repaired.', time:'14 Mar · WSJ / The Aviationist'},
+      {dot:'r', text:'Trump (Truth Social): "The Base was hit a few days ago but the planes were not struck or destroyed. Four of the five had virtually no damage. One had slightly more damage, but will be in the air shortly."', time:'14 Mar · @realDonaldTrump'},
+      {dot:'b', text:'Saudi MOD: separately on 13 Mar, 51+ drones intercepted across KSA — largest single-day drone intercept total of campaign. Eastern Province, Riyadh, Al-Kharj, Shaybah all targeted.', time:'13 Mar · Saudi MOD (@modgovksa) / The National'},
+    ],
+    links:[
+      {label:'Wall Street Journal — Five US KC-135s damaged at PSAB', url:'https://www.wsj.com/'},
+      {label:'The Aviationist — Five tankers damaged at PSAB', url:'https://theaviationist.com/2026/03/14/five-tankers-damaged-at-psab/'},
+      {label:'House of Saud — Iran Damages 5 KC-135 Tankers', url:'https://houseofsaud.com/iran-damages-five-us-kc135-tankers-prince-sultan-air-base/'},
+      {label:'The National — Saudi Arabia 51 drones intercepted 13 Mar', url:'https://www.thenationalnews.com/news/gulf/2026/03/13/saudi-arabia-targeted-with-50-drones-in-hours-as-iran-launches-new-wave-of-attacks-on-gulf/'},
+    ],
+  },
+
   // ══ 12 MARCH ══════════════════════════════════════════════════════
   // KSA MOD early Wednesday: 5 drones destroyed heading toward Shaybah + 2 more in Eastern Province.
   // Kuwait: National Guard downed 8 drones; IRGC claimed 2 missiles targeted Camp Arifjan (unconfirmed by Kuwait).
@@ -1327,7 +1423,7 @@ function mkPopup(inc) {
 ${linksHtml}
 <div class="pu-foot">
   <span>${inc.lat.toFixed(4)}°N ${inc.lon.toFixed(4)}°E · ${inc.emirate}</span>
-  <span>AKE International · 12 Mar 2026</span>
+  <span>AKE International · 16 Mar 2026</span>
 </div>
 </div>`;
 }
@@ -1394,17 +1490,22 @@ function buildList() {
 
 function updateStats() {
   const s = DAILY[activeDay] || DAILY.all;
-  const tl = s.ml + s.dl, ti = s.mi + s.di;
-  const rate = tl > 0 ? Math.round(ti / tl * 100) : 0;
+  const na = v => (v === null || v === undefined);
+  const p = s.minOnly ? '+' : '';
+  const tl = (na(s.ml)?0:s.ml) + (na(s.dl)?0:s.dl);
+  const ti = (na(s.mi)?0:s.mi) + (na(s.di)?0:s.di);
+  let rate = null;
+  if (!na(s.frozenRate)) rate = s.frozenRate;
+  else if (!s.minOnly && !na(s.ml) && !na(s.dl) && tl > 0) rate = Math.round(ti/tl*100);
   const scope = INCIDENTS.filter(i =>
     (activeDay === 'all'     || i.day     === activeDay) &&
     (countryFilter === 'all' || i.emirate === countryFilter));
   const ksaHits = scope.filter(i => i.emirate==='Saudi Arabia' && (i.mstruck+i.dstruck)>0).length;
   const kwHits  = scope.filter(i => i.emirate==='Kuwait'       && (i.mstruck+i.dstruck)>0).length;
-  document.getElementById('tot-int').textContent      = rate + '%';
-  document.getElementById('tot-struck').textContent   = ksaHits + kwHits;
-  document.getElementById('tot-ksa-hits').textContent = ksaHits;
-  document.getElementById('tot-kw-hits').textContent  = kwHits;
+  document.getElementById('tot-int').textContent      = na(rate) ? '—' : rate+'%';
+  document.getElementById('tot-struck').textContent   = (ksaHits + kwHits) + p;
+  document.getElementById('tot-ksa-hits').textContent = ksaHits + p;
+  document.getElementById('tot-kw-hits').textContent  = kwHits + p;
 }
 
 function hilite(id, on) {
