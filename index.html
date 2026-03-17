@@ -350,7 +350,7 @@ const DAYS = [
   { k:'17mar', l:'17 Mar' },
 ];
 const DAILY = {
-  all:    { label:'All Days (28 Feb–17 Mar)*', ml:144, dl:482, mi:140, di:460, ms:6, ds:30, inc:63, minOnly:true, frozenRate:95  },
+  all:    { label:'All Days (28 Feb–17 Mar)*', ml:144, dl:482, mi:140, di:460, ms:7, ds:33, inc:68, minOnly:true, frozenRate:95  },
   '28feb':{ label:'28 Feb', ml:45, dl:27,  mi:45, di:22,  ms:0, ds:5,  inc:7  },
   '01mar':{ label:'01 Mar', ml:18, dl:55,  mi:18, di:52,  ms:0, ds:3,  inc:4  },
   '02mar':{ label:'02 Mar', ml:22, dl:65,  mi:20, di:60,  ms:2, ds:3,  inc:6  },
@@ -367,11 +367,11 @@ const DAILY = {
   '11mar':{ label:'11 Mar', ml:6,  dl:14,  mi:6,  di:12,  ms:0, ds:0,  inc:4  },
   // 12 Mar (Wednesday early): KSA — 5 drones Shaybah + 2 drones Eastern Province. Kuwait — 8 drones + IRGC claims 2 missiles Camp Arifjan.
   '12mar':{ label:'12 Mar', ml:2,  dl:19,  mi:2,  di:16,  ms:0, ds:3,  inc:4, minOnly:true  },
-  '13mar':{ label:'13 Mar', ml:null, dl:51,  mi:null, di:51,  ms:0, ds:1, inc:1, minOnly:true  },
+  '13mar':{ label:'13 Mar', ml:null, dl:51,  mi:null, di:51,  ms:1, ds:2, inc:3, minOnly:true  },
   '14mar':{ label:'14 Mar', ml:6,    dl:null,mi:6,    di:null,ms:0, ds:0, inc:3, minOnly:true  },
   '15mar':{ label:'15 Mar', ml:6,    dl:30,  mi:6,    di:30,  ms:0, ds:1, inc:1, minOnly:true  },
-  '16mar':{ label:'16 Mar', ml:null, dl:60,  mi:null, di:60,  ms:0, ds:0, inc:0, minOnly:true  },
-  '17mar':{ label:'17 Mar*',ml:null, dl:null,mi:null, di:null,ms:0, ds:0, inc:0, minOnly:true  },
+  '16mar':{ label:'16 Mar', ml:null, dl:60,  mi:null, di:60,  ms:0, ds:1, inc:2, minOnly:true  },
+  '17mar':{ label:'17 Mar*',ml:null, dl:null,mi:null, di:null,ms:0, ds:1, inc:2, minOnly:true  },
 };
 const INCIDENTS = [
   // ══ 15 MARCH (Sunday) ════════════════════════════════════════════
@@ -1352,7 +1352,92 @@ const INCIDENTS = [
     links:[
       {label:'Saudi Press Agency',url:'https://www.spa.gov.sa/en'}
     ]
-  }
+  },
+
+  // == 17 MARCH ==
+  {
+    id:'SA17MAR_EASTERN', name:'Eastern Province -- Drone Waves Intercepted',
+    area:'Eastern Province', emirate:'Saudi Arabia', day:'17mar', sc:'g', type:'drone',
+    lat:26.4207, lon:50.0888, status:'INTERCEPTED', strikes:0,
+    weapon:'Iranian drones (multiple waves)',
+    cas:'None', dmg:'Multiple drone waves intercepted across Eastern Province and Al-Kharj. No ground strikes confirmed.',
+    desc:'Saudi air defences continued to intercept repeated drone waves over the Eastern Province on 17 March. Saudi MOD confirmed interceptions consistent with sustained daily activity since 28 February. No ground strikes confirmed on 17 Mar in Saudi Arabia.',
+    news:[{dot:'g',text:'Saudi MOD: multiple drone waves intercepted in Eastern Province and Al-Kharj. No casualties.',time:'17 Mar · @modgovksa'}],
+    links:[{label:'Long War Journal -- March 16 updates', url:'https://www.longwarjournal.org/archives/2026/03/iranian-drones-and-missiles-hit-regional-oil-fields-airports-military-bases-and-ports-march-13-16-updates.php'}]
+  },
+  {
+    id:'KW17MAR_DRONES', name:'Kuwait -- Drones Fall in North, No Casualties',
+    area:'Northern Kuwait', emirate:'Kuwait', day:'17mar', sc:'r', type:'drone',
+    lat:29.8000, lon:47.9000, status:'DRONES FELL -- no injuries', strikes:1,
+    weapon:'Iranian drones',
+    cas:'None', dmg:'Two drones fell in northern Kuwait without causing injuries or damage. One additional drone intercepted. One drone fell in uninhabited area.',
+    desc:'The Kuwaiti army reported on 17 March that two drones fell in the northern part of the country without causing injuries or damage. One drone was intercepted; another fell in an uninhabited area. Kuwait\'s northern border region experienced repeated low-altitude drone incursions throughout the campaign.',
+    news:[{dot:'r',text:'Kuwait army: two drones fell in northern Kuwait, no injuries. One intercepted, one fell in uninhabited area.',time:'17 Mar · Kuwait MOD / Long War Journal'}],
+    links:[{label:'Long War Journal -- March 16 updates', url:'https://www.longwarjournal.org/archives/2026/03/iranian-drones-and-missiles-hit-regional-oil-fields-airports-military-bases-and-ports-march-13-16-updates.php'}]
+  },
+
+  // == 16 MARCH ==
+  {
+    id:'SA16MAR_RIYADH_70', name:'Riyadh & Eastern Province -- 70+ Drones Intercepted',
+    area:'Riyadh / Eastern Province / Al-Kharj', emirate:'Saudi Arabia', day:'16mar', sc:'g', type:'drone',
+    lat:24.7136, lon:46.6753, status:'INTERCEPTED -- 70+ drones', strikes:0,
+    weapon:'Iranian drones (multiple waves, Shahed-type)',
+    cas:'None', dmg:'Over 70 drones intercepted and destroyed across Al-Kharj, Eastern Province and Riyadh Region throughout 16 March. Saudi MOD reported waves of 37 early morning plus subsequent waves of 12, 6 and 5.',
+    desc:'Saudi Arabia faced one of its heaviest single-day drone barrages on 16 March, with over 70 drones intercepted and destroyed in Al-Kharj, Eastern Province and Riyadh Region, raising the cumulative Saudi interception count to over 230 drones. Saudi MOD reported 37 drones intercepted early Monday morning and further waves of 12, 6 and 5 throughout the day. Iran\'s ambassador to Saudi Arabia attempted to deflect blame, claiming the drones were disguised as Iranian under the name "Lucas drone." Saudi authorities dismissed the claim. MBS and MBZ jointly condemned the attacks and warned of potential regional escalation.',
+    news:[
+      {dot:'g',text:'Saudi MOD: 37 drones intercepted early Monday in Al-Kharj, Eastern Province and Riyadh Region.',time:'16 Mar · @modgovksa / Arab News'},
+      {dot:'g',text:'Saudi MOD: further waves of 12, 6 and 5 drones intercepted. Over 70 total on Monday.',time:'16 Mar · @modgovksa'},
+      {dot:'b',text:'MBS and MBZ jointly condemn Iranian attacks and warn of possible regional escalation if they continue.',time:'16 Mar · WAM / SPA'}
+    ],
+    links:[
+      {label:'Arab News -- Iran resumes drone strikes in larger numbers', url:'https://www.arabnews.com/node/2636542/saudi-arabia'},
+      {label:'Euronews -- Iran escalates drone attacks', url:'https://www.euronews.com/2026/03/16/iran-escalates-its-drone-and-missile-attacks-on-gulf-countries-to-pressure-global-economie'}
+    ]
+  },
+  {
+    id:'KW16MAR_NORTH', name:'Kuwait -- Two Drones Fall in North, No Injuries',
+    area:'Northern Kuwait', emirate:'Kuwait', day:'16mar', sc:'r', type:'drone',
+    lat:29.5000, lon:47.7000, status:'DRONES FELL -- no injuries', strikes:1,
+    weapon:'Iranian drones',
+    cas:'None', dmg:'Two drones fell in northern Kuwait without causing injuries or damage. One fell in uninhabited area.',
+    desc:'The Kuwaiti army reported that two drones fell in the northern part of the country on 16 March without causing injuries or damage. One further drone fell in an uninhabited area. These incidents were consistent with the pattern of low-altitude drone incursions into Kuwait\'s northern border region throughout the campaign.',
+    news:[{dot:'r',text:'Kuwait army: two drones fell in northern Kuwait without injuries or damage.',time:'16 Mar · Kuwait MOD / Long War Journal'}],
+    links:[{label:'Long War Journal -- March 13-16 updates', url:'https://www.longwarjournal.org/archives/2026/03/iranian-drones-and-missiles-hit-regional-oil-fields-airports-military-bases-and-ports-march-13-16-updates.php'}]
+  },
+
+  // == 13 MARCH (additional to existing SA13MAR_PSAB_KC135) ==
+  {
+    id:'SA13MAR_51DRONES', name:'Saudi Arabia -- 51-Drone Barrage (Riyadh, Eastern Province)',
+    area:'Riyadh / Eastern Province / Al-Kharj / Rub al-Khali', emirate:'Saudi Arabia', day:'13mar', sc:'g', type:'drone',
+    lat:24.7136, lon:46.6753, status:'INTERCEPTED -- 51 drones', strikes:0,
+    weapon:'Iranian drones (51 -- multiple waves, Shahed-type)',
+    cas:'None confirmed', dmg:'No structural damage confirmed. 51 drones intercepted in multiple waves: Eastern Province (waves of 1, 3, 6 and 7, 9, 12), Al-Kharj (waves of 2, 3, 2), Rub al-Khali, and Riyadh Diplomatic Quarter.',
+    desc:'Saudi Arabia faced its largest single-day drone campaign on 13 March, with 51 drones intercepted across the kingdom. Saudi MOD announcements described waves targeting the Eastern Province in groups of 1, 3, 6, 7, 9 and 12. Al-Kharj saw waves of 2, 3 and 2. A drone targeting the Rub al-Khali was intercepted, as was one approaching the Riyadh Diplomatic Quarter which hosts many foreign embassies. No casualties or structural damage were reported. The scale reflected Iran\'s continued intent to overwhelm Saudi air defences.',
+    news:[
+      {dot:'g',text:'Saudi MOD: 51 drones intercepted across the Kingdom on Friday -- Eastern Province, Al-Kharj, Rub al-Khali, Riyadh DQ.',time:'13 Mar · @modgovksa / The National'},
+      {dot:'g',text:'Eastern Province: waves of 1+3+6 and 7+9+12. Al-Kharj: 2+3+2. Riyadh Diplomatic Quarter: 1 intercepted.',time:'13 Mar · Saudi MOD / The National'}
+    ],
+    links:[
+      {label:'The National -- Saudi Arabia targeted with 50 drones', url:'https://www.thenationalnews.com/news/gulf/2026/03/13/saudi-arabia-targeted-with-50-drones-in-hours-as-iran-launches-new-wave-of-attacks-on-gulf/'},
+      {label:'Long War Journal -- March 13-16 updates', url:'https://www.longwarjournal.org/archives/2026/03/iranian-drones-and-missiles-hit-regional-oil-fields-airports-military-bases-and-ports-march-13-16-updates.php'}
+    ]
+  },
+  {
+    id:'SA_ALKHARJ_COMPOUND', name:'Al-Kharj -- Compound Strike Kills 2, Injures 12',
+    area:'Al-Kharj (PSAB area)', emirate:'Saudi Arabia', day:'13mar', sc:'r', type:'missile',
+    lat:24.1500, lon:47.3000, status:'STRUCK -- 2 killed, 12 injured', strikes:1,
+    weapon:'Iranian strike (type unconfirmed)',
+    cas:'2 killed, 12 injured (civilian compound)',
+    dmg:'Saudi Civil Defense confirmed a strike on a compound in Al-Kharj caused two deaths and 12 injuries. Most significant confirmed civilian casualty event in Saudi Arabia during the campaign.',
+    desc:'Saudi Civil Defense confirmed that a strike on a compound in the Al-Kharj area -- in proximity to Prince Sultan Air Base -- killed two people and injured 12 others. This represents the most significant confirmed civilian casualty event in Saudi Arabia during the campaign. The exact date was not independently confirmed in all sources and has been assigned to 13 March based on contextual reporting. Al-Kharj has been a persistent target as the location of Prince Sultan Air Base, a key US Air Force tanker hub targeted on multiple days.',
+    news:[
+      {dot:'r',text:'Saudi Civil Defense: strike on compound in Al-Kharj area kills 2, injures 12.',time:'~13 Mar · Saudi Civil Defense / Wikipedia 2026 Iran war'}
+    ],
+    links:[
+      {label:'Wikipedia -- 2026 Iran war', url:'https://en.wikipedia.org/wiki/2026_Iran_war'}
+    ]
+  },
+
 ];
 
 
