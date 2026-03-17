@@ -204,14 +204,14 @@ html,body{width:100%;height:100%;overflow:hidden;
     <div class="h-sep"></div>
     <div>
       <div class="h-title">KSA &amp; Kuwait — Iranian Strike Intelligence</div>
-      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 16 Mar 2026</div>
+      <div class="h-sub">Drone &amp; Missile Campaign · 28 Feb – 17 Mar 2026</div>
     </div>
   </div>
   <div class="h-right">
     <div style="display:flex;gap:3px;">
       <button class="msb" id="msb-light"  onclick="setStyle('light')">&#9728; Light</button>
       <button class="msb" id="msb-dark" onclick="setStyle('dark')">&#127761; Dark</button>
-      <button class="msb active" id="msb-street" onclick="setStyle('street')">&#128506; Street</button>
+      <button class="msb active" id="msb-street" onclick="setStyle('street')">&#9723; Positron</button>
       
       
     </div>
@@ -309,8 +309,8 @@ const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/vo
   {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:20});
 const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:20});
-const osmStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-  {attribution:'© Esri',maxZoom:19});
+const osmStreet = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:20});
 
 const map = L.map('map', {center:[26.5,46.0], zoom:6, zoomControl:true, attributionControl:false});
 osmStreet.addTo(map);
@@ -347,9 +347,10 @@ const DAYS = [
   { k:'14mar', l:'14 Mar' },
   { k:'15mar', l:'15 Mar' },
   { k:'16mar', l:'16 Mar' },
+  { k:'17mar', l:'17 Mar' },
 ];
 const DAILY = {
-  all:    { label:'All Days (28 Feb–16 Mar)*', ml:144, dl:422, mi:140, di:400, ms:6, ds:29, inc:62, minOnly:true, frozenRate:95  },
+  all:    { label:'All Days (28 Feb–17 Mar)*', ml:144, dl:482, mi:140, di:460, ms:6, ds:30, inc:63, minOnly:true, frozenRate:95  },
   '28feb':{ label:'28 Feb', ml:45, dl:27,  mi:45, di:22,  ms:0, ds:5,  inc:7  },
   '01mar':{ label:'01 Mar', ml:18, dl:55,  mi:18, di:52,  ms:0, ds:3,  inc:4  },
   '02mar':{ label:'02 Mar', ml:22, dl:65,  mi:20, di:60,  ms:2, ds:3,  inc:6  },
@@ -368,10 +369,35 @@ const DAILY = {
   '12mar':{ label:'12 Mar', ml:2,  dl:19,  mi:2,  di:16,  ms:0, ds:3,  inc:4, minOnly:true  },
   '13mar':{ label:'13 Mar', ml:null, dl:51,  mi:null, di:51,  ms:0, ds:1, inc:1, minOnly:true  },
   '14mar':{ label:'14 Mar', ml:6,    dl:null,mi:6,    di:null,ms:0, ds:0, inc:3, minOnly:true  },
-  '15mar':{ label:'15 Mar', ml:6,    dl:30,  mi:6,    di:30,  ms:0, ds:0, inc:0, minOnly:true  },
-  '16mar':{ label:'16 Mar*',ml:null, dl:null,mi:null, di:null,ms:0, ds:0, inc:0, minOnly:true  },
+  '15mar':{ label:'15 Mar', ml:6,    dl:30,  mi:6,    di:30,  ms:0, ds:1, inc:1, minOnly:true  },
+  '16mar':{ label:'16 Mar', ml:null, dl:60,  mi:null, di:60,  ms:0, ds:0, inc:0, minOnly:true  },
+  '17mar':{ label:'17 Mar*',ml:null, dl:null,mi:null, di:null,ms:0, ds:0, inc:0, minOnly:true  },
 };
 const INCIDENTS = [
+  // ══ 15 MARCH (Sunday) ════════════════════════════════════════════
+  // Saudi Arabia: ~30 drones intercepted Riyadh + Eastern Province. All intercepted, no ground strikes.
+  // Kuwait: Iranian drone destroys Italian MQ-9A Predator at Ali Al Salem Air Base. Confirmed by
+  // Italian Chief of Defence General Portolano. No personnel casualties.
+  {
+    id:'KW15MAR_ALISALEM_MQ9', day:'15mar', emirate:'Kuwait', sc:'r', type:'drone',
+    lat:29.4542, lon:47.5089,
+    name:'Ali Al Salem Air Base — Italian MQ-9A Predator Destroyed (~$35M)',
+    area:'Ali Al Salem Air Base, Kuwait',
+    time:'Afternoon AST · 15 Mar',
+    status:'STRUCK — MQ-9A Predator destroyed (~$35m), no personnel casualties', strikes:1,
+    weapon:'Iranian drone (penetrated hardened aircraft shelter)', cas:'None — no personnel casualties', dmg:'Iranian drone struck a fortified aircraft shelter at Ali Al Salem Air Base, destroying an Italian Army MQ-9A Predator (Reaper) UAV valued at approximately $35 million. The shelter was specifically built to protect high-value platforms. Most significant single equipment loss at the installation so far.', rate:'—',
+    mwave:null, mstruck:0, dwave:null, dstruck:1,
+    desc:'On Sunday afternoon 15 March, an Iranian drone penetrated a hardened aircraft shelter at Ali Al Salem Air Base in Kuwait and destroyed an Italian Army MQ-9A Predator unmanned aerial vehicle. The loss was confirmed by Italy\'s Chief of the Defence General Staff, General Luciano Portolano, who described it as a direct strike against coalition operational capability. The MQ-9A Predator is valued at approximately $35 million. Analysts noted that Iran likely used larger decoy missiles and drones to saturate air defences while a smaller drone with lower radar cross-section breached the perimeter. The Ali Al Salem base hosts Italian, US and other coalition forces. It houses the Camp Canada installation which was also struck in an earlier attack. The destruction of the Predator — a key ISR (intelligence, surveillance, reconnaissance) platform — directly degraded coalition surveillance capability. No personnel were casualties. The base is located adjacent to Camp Arifjan, which hosts the CENTCOM forward headquarters.',
+    news:[
+      {dot:'r', text:'Italian Chief of Defence Gen. Portolano confirms: Iranian drone struck shelter housing Italian Air Operational Group\'s MQ-9A Predator at Ali Al Salem Air Base, destroying the aircraft. No personnel casualties.', time:'15 Mar · Italian MoD / The Week / Defence Security Asia'},
+      {dot:'b', text:'MQ-9A Predator valued at ~$35m. Analysts: Iran likely used decoy strikes to saturate air defences while smaller drone penetrated hardened shelter. Most significant single equipment loss at Ali Al Salem to date.', time:'15 Mar · Defence Security Asia'},
+    ],
+    links:[
+      {label:'The Week — How Iran destroyed MQ-9A at Ali Al Salem', url:'https://www.theweek.in/news/defence/2026/03/16/how-iran-destroyed-mq-9a-predator-uav-at-ali-al-salem-air-base-revealed.html'},
+      {label:'Defence Security Asia — MQ-9A destroyed at Ali Al Salem', url:'https://defencesecurityasia.com/en/iran-drone-strike-mq9-predator-kuwait-ali-al-salem-isr-gulf-war-2026/'},
+    ],
+  },
+
   // ══ 14 MARCH (Saturday) ══════════════════════════════════════════
   // Saudi MOD: 6 BM intercepted over al-Kharj governorate. Multiple drones Riyadh/Eastern Province.
   // Kuwait: 2 drones struck Ahmed al-Jaber Air Base (3 soldiers lightly injured); several drones
@@ -1423,7 +1449,7 @@ function mkPopup(inc) {
 ${linksHtml}
 <div class="pu-foot">
   <span>${inc.lat.toFixed(4)}°N ${inc.lon.toFixed(4)}°E · ${inc.emirate}</span>
-  <span>AKE International · 16 Mar 2026</span>
+  <span>AKE International · 17 Mar 2026</span>
 </div>
 </div>`;
 }
